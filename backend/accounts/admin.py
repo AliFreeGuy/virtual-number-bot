@@ -27,7 +27,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('chat_id', 'full_name', 'password1', 'password2', 'is_admin', 'is_active','is_auth' , 'auth_data' 'is_superuser' , 'wallet'),
+            'fields': ('chat_id', 'full_name', 'password1', 'password2', 'is_admin', 'is_active', 'is_superuser' , 'wallet'),
         }),
     )
 
