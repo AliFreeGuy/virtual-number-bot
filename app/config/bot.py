@@ -13,3 +13,8 @@ REDIS_HOST = env.get('REDIS_HOST')
 REDIS_PORT = env.get('REDIS_PORT')
 REDIS_DB= env.get('REDIS_DB')
 REDIS_PASS = env.get('REDIS_PASS')
+
+API_URL = env.get('API_URL')
+API_KEY = env.get('API_KEY')
+BOT_USERNAME = env.get('BOT_USERNAME')
+CACHE_TTL = int(env.get('CACHE_TTL'))
