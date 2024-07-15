@@ -26,6 +26,7 @@ class SettingModel(models.Model):
     join_text = models.TextField()
     user_not_active_text = models.TextField()
     user_profile_text = models.TextField()
+    privacy_text = models.TextField(default='none')
 
 
     channel_1 = models.CharField(max_length=256  , null=True , blank=True)
