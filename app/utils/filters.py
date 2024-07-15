@@ -26,11 +26,8 @@ async def bot_is_off(_ , cli , msg ):
 
 
 async def updater(_ , cli , msg ):
-    try :
-        user = con.user(chat_id=msg.from_user.id , full_name=msg.from_user.first_name )
-    except Exception as e :
-         logger.warning(e)
-         
+    try :user = con.user(chat_id=msg.from_user.id , full_name=msg.from_user.first_name )
+    except Exception as e :logger.warning(e)
     return True
 
 
@@ -38,17 +35,12 @@ async def updater(_ , cli , msg ):
 
 async def user_is_active(_ , cli , msg ):
     user = con.get_user(msg.from_user.id )
-    print(user)
-    if user.is_active == True  :
-        return True
+    if user.is_active == True  :return True
     return False
 
 async def user_not_active(_ , cli , msg ):
     user = con.get_user(msg.from_user.id )
-    print(user)
-
-    if user.is_active is False:
-        return True
+    if user.is_active is False:return True
     return False
 
 
