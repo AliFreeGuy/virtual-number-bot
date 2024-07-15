@@ -3,7 +3,7 @@ from utils import logger , cache
 from utils import filters as f
 from utils.connection import connection as con
 
-@Client.on_message(f.updater , group=0)
+@Client.on_message(f.updater &f.bot_is_on & f.user_is_active, group=1)
 async def command_manager(bot, msg):
     setting = con.setting
     print(setting)

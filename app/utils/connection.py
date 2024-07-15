@@ -82,7 +82,15 @@ class Connection:
     
 
     
-
+    def get_user(self , chat_id):
+            pattern  = 'user_update'
+            url = self.link_generator(pattern)
+            res = self.post(url , chat_id )
+            if res and res.status_code == 200 :
+                res = Response(res.json())
+                return res
+            return None  
+        
 
     def link_generator(self  , pattern = None):
             if pattern is not None :
