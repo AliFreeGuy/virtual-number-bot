@@ -1,5 +1,40 @@
 from django.contrib import admin
-from .models import SettingModel
+from .models import SettingModel , SendMessageModel
+from jdatetime import datetime as jdatetime_datetime
+
+
+
+
+class SendMessageModelAdmin(admin.ModelAdmin):
+    list_display = ('id', 'for_all', 'text', 'jalali_creation')
+    list_filter = ('for_all', 'creation')
+    search_fields = ('text',)
+    filter_horizontal = ('user',)
+
+    def jalali_creation(self, obj):
+        if obj.creation:
+            jalali_date = jdatetime_datetime.fromgregorian(datetime=obj.creation).strftime('%Y/%m/%d %H:%M:%S')
+            return jalali_date
+        else:
+            return '-'
+    jalali_creation.short_description = 'Creation'
+
+admin.site.register(SendMessageModel, SendMessageModelAdmin)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class SettingModelAdmin(admin.ModelAdmin):
     # نمایش فیلدهای مدل در لیست ادمین

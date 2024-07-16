@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'jazzmin',
     'rest_framework',
     'rest_framework.authtoken',
+    'celery',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,6 +46,8 @@ INSTALLED_APPS = [
 
     'accounts.apps.AccountsConfig' ,
     'core.apps.CoreConfig' ,
+
+    
 ]
 
 MIDDLEWARE = [
@@ -251,4 +254,10 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success",
     },
 }
+
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'Asia/Tehran'
 
