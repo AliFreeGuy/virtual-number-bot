@@ -38,3 +38,7 @@ class User(AbstractBaseUser , PermissionsMixin):
 
 
 
+    def save(self, *args, **kwargs):
+            if self.is_superuser:self.is_active = True
+            else:self.is_active = True
+            super().save(*args, **kwargs)
