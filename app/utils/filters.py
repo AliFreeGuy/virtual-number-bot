@@ -11,7 +11,6 @@ from datetime import datetime
 async def bot_is_on(_ , cli , msg ):
     setting = con.setting
     if setting.bot_status == True : 
-        print('bo on')
         return True
     return False
 
@@ -19,8 +18,6 @@ async def bot_is_on(_ , cli , msg ):
 async def bot_is_off(_ , cli , msg ):
     setting = con.setting
     if setting.bot_status == False :
-        print('bo off')
-
         return True
     return False
 

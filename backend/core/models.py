@@ -62,3 +62,5 @@ class SendMessageModel(models.Model):
     class Meta:
         verbose_name = "SendMessage"
         verbose_name_plural = "SendMessages"
+
+

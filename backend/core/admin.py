@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SettingModel , SendMessageModel
+from .models import SettingModel , SendMessageModel 
 from jdatetime import datetime as jdatetime_datetime
 
 
