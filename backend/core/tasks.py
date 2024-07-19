@@ -21,7 +21,10 @@ def sendmessage_task(msg_id):
     setting = SettingModel.objects.first()
     if msg.exists() :
         msg = msg.first()
-        users = msg.user.all()
+
+        
+        if msg.for_all :users = User.objects.all()
+        else : users = msg.user.all()
         
         if settings.DEBUG  : bot = Client('message-sender' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token , proxy=PROXY)
         else :bot = Client('message-sender' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token)
