@@ -38,6 +38,14 @@ def help_and_rule_btn():
     return InlineKeyboardMarkup(buttons)
 
 
+def support_btn(msg_id , chat_id , url  , user_name):
+
+    buttons = []
+    buttons.append([
+        InlineKeyboardButton(text='پاسخ',callback_data=f'answer:{chat_id}:{msg_id}'),
+        InlineKeyboardButton(text=user_name,url=url)
+        ])
+    return InlineKeyboardMarkup(buttons)
 
 
 

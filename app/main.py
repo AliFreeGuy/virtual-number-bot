@@ -1,27 +1,26 @@
-import asyncio
-import uvloop
-from pyrogram import Client, idle
-from utils import logger
-import config 
+
+from pyrogram import Client , filters 
+from pyromod import listen
+import config
+
+if config.DEBUG == 'True' :
 
 
+    bot = Client(
+            name = "bot",
+                api_id=config.API_ID , 
+                api_hash=config.API_HASH , 
+                bot_token=config.BOT_TOKEN , 
+                proxy=config.PROXY ,
+                plugins=dict(root="plugins"))
+else :
+    bot = Client(
+                name = "bot",
+                api_id=config.API_ID , 
+                api_hash=config.API_HASH , 
+                bot_token=config.BOT_TOKEN , 
+                plugins=dict(root="plugins"))
 
-async def main():
-    bot_client = Client(
-        config.BOT_SESSION,
-        config.API_ID,
-        config.API_HASH,
-        bot_token=config.BOT_TOKEN,
-        workdir=config.WORK_DIR,
-        plugins=dict(root="plugins")
-    )
-    
-    if config.DEBUG =='True':
-        bot_client.proxy = config.PROXY
+if __name__ == '__main__' : 
+    bot.run()
 
-    await bot_client.start()
-    await idle()
-
-if __name__ == '__main__':
-    uvloop.install()
-    asyncio.run(main())
