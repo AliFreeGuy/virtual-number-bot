@@ -13,6 +13,7 @@ class SettingModel(models.Model):
     backup_channel = models.BigIntegerField()
     zarin_key = models.CharField(max_length=256)
     checker_key = models.CharField(max_length=256)
+    callino_key = models.CharField(max_length=256 , default='none')
     checker_status = models.BooleanField()
     auth_status = models.BooleanField(default=False)
     user_limit_pay = models.BigIntegerField()

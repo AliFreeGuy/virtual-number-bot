@@ -44,9 +44,20 @@ async def user_not_active(_ , cli , msg ):
     return False
 
 
+async def is_admin(_ , cli , msg ):
+    if int(msg.from_user.id) == config.ADMIN :
+        return True
+    return False
+
+async def user_not_admin(_ , cli , msg ):
+    if int(msg.from_user.id) == config.ADMIN :
+        return False
+    return True
 
 bot_is_on = filters.create(bot_is_on)
 bot_is_off = filters.create(bot_is_off)
 updater = filters.create(updater)
 user_is_active = filters.create(user_is_active)
 user_not_active = filters.create(user_not_active)
+is_admin = filters.create(is_admin)
+user_not_admin = filters.create(user_not_admin)

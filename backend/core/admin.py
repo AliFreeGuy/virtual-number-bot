@@ -40,7 +40,7 @@ class SettingModelAdmin(admin.ModelAdmin):
     # نمایش فیلدهای مدل در لیست ادمین
     list_display = (
         'bot_status', 'bot_token', 'api_hash', 'api_id', 'bot_username',
-        'backup_channel', 'zarin_key', 'checker_key', 'checker_status', 
+        'backup_channel', 'zarin_key', 'checker_key','callino_key' , 'checker_status', 
         'auth_status', 'user_limit_pay'
     )
     
@@ -55,7 +55,7 @@ class SettingModelAdmin(admin.ModelAdmin):
         ('Bot Setting', {
             'fields': (
                 'bot_status', 'bot_token', 'api_hash', 'api_id', 'bot_username',
-                'backup_channel', 'zarin_key', 'checker_key', 'checker_status', 
+                'backup_channel', 'zarin_key', 'checker_key','callino_key' , 'checker_status', 
                 'auth_status', 'user_limit_pay', 'start_text', 'bot_off_text', 
                 'support_text', 'help_text', 'rule_text', 'join_text', 
                 'user_not_active_text', 'user_profile_text', 'channel_1', 
