@@ -3,6 +3,7 @@ from utils.connection import connection as con
 from utils.logger import logger
 import config
 from datetime import datetime
+from utils.utils import join_checker
 
 
 
@@ -54,6 +55,29 @@ async def user_not_admin(_ , cli , msg ):
         return False
     return True
 
+
+async def user_is_join(_ , cli , msg ):
+    if con and con.setting :
+        channels = con.setting.channels
+        is_join = await join_checker(cli , msg , channels)
+        if not is_join : return True
+        else :return False
+    else :return False
+
+
+
+async def user_not_join(_ , cli , msg ):
+    if con and con.setting :
+        channels = con.setting.channels
+        is_join = await join_checker(cli , msg , channels)
+        print(is_join)
+        if not is_join : return False
+        else :return True
+    else :return False
+
+
+user_not_join=filters.create(user_not_join)
+user_is_join = filters.create(user_is_join)
 bot_is_on = filters.create(bot_is_on)
 bot_is_off = filters.create(bot_is_off)
 updater = filters.create(updater)

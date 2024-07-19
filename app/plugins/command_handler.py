@@ -1,13 +1,13 @@
 from pyrogram import Client, filters
-from utils import logger , cache 
+from utils import logger , cache  , btn , txt
 from utils import filters as f
 from utils.connection import connection as con
 import requests
 from utils.utils import alert
+from utils.utils import join_checker
 
 
-
-@Client.on_message(f.updater &f.bot_is_on & f.user_is_active, group=2)
+@Client.on_message(f.updater &f.bot_is_on & f.user_is_active & f.user_is_join, group=2)
 async def command_manager(bot, msg):
     
 
@@ -35,6 +35,10 @@ async def callback_manager(bot, call):
 
     if status == 'callino_amount' : 
         await callino_amount_manager(bot ,call )
+
+    elif status == 'join' :
+        await joined_handler(bot , call )
+
         
 
 async def callino_amount_manager(bot , call ):
@@ -46,3 +50,19 @@ async def callino_amount_manager(bot , call ):
             await alert(bot , call , msg=f'موجودی حساب کالینو : {data["balance"]}')
     except Exception as e :
         await alert(bot , call , msg= str(e))
+
+
+async def joined_handler(bot , call ):
+    if con :
+
+        channels = con.setting.channels
+        not_join_channels = await join_checker(bot , call ,channels)
+        if not_join_channels :
+            await bot.send_message(call.from_user.id   , text = con.setting.join_text  , reply_markup = btn.join_channels_url(not_join_channels))
+            await alert(bot , call , 'هنوز که تو کانالا جوین نشدی !')
+            logger.info(f'user not join channel : {str(call.from_user.id)}')
+        else :
+            await bot.delete_messages(call.from_user.id , call.message.id)
+            await bot.send_message(call.from_user.id , text = con.setting.start_text)
+            logger.info(f'user is join channel : {str(call.from_user.id)}')
+

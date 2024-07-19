@@ -11,6 +11,13 @@ from accounts.models import User
 
 
 class SettingSerializer(serializers.ModelSerializer):
+    channels = serializers.SerializerMethodField()
+
+    def get_channels(self, obj):
+        channels = [obj.channel_1, obj.channel_2, obj.channel_3, obj.channel_4, obj.channel_5]
+        channels = [channel for channel in channels if channel]
+        return channels
+
     class Meta:
         model = SettingModel
         fields = '__all__'
