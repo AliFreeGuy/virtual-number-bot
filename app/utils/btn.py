@@ -21,6 +21,42 @@ def admin_panel_btn():
     buttons.append([InlineKeyboardButton(text='موجودی حساب کالینو',callback_data=f'callino_amount'),])
     return InlineKeyboardMarkup(buttons)
     
+def user_panel():
+    marks = [
+                    ['خرید شماره مجازی'],
+                    ['حساب کاربری' , 'افزایش موجودی',],
+                    ['راهنما و قوانین' , 'پشتیبانی' , 'انتقال موجودی']
+            ]
+    return ReplyKeyboardMarkup(marks , resize_keyboard=True )
+
+
+
+
+def help_and_rule_btn():
+    buttons = []
+    buttons.append([InlineKeyboardButton(text='راهنما',callback_data='help_text'),InlineKeyboardButton(text='قوانین',callback_data=f'rule_text')])
+    return InlineKeyboardMarkup(buttons)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

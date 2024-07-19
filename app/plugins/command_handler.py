@@ -17,9 +17,98 @@ async def command_manager(bot, msg):
         if msg.text == '/privacy' :
             setting  = con.setting
             await bot.send_message(msg.from_user.id , setting.privacy_text)
+        
+        elif msg.text in ['/start' ,]:
+            await start_manager(bot , msg )
+        
+        elif msg.text in ['راهنما و قوانین']:
+            await help_and_rule_manager(bot ,msg )
+        
+        elif msg.text == '/help' :
+            setting = con.setting
+            await bot.send_message(msg.from_user.id , setting.help_text)
+        
+        elif msg.text == '/rule' :
+            setting = con.setting
+            await bot.send_message(msg.from_user.id , setting.rule_text)
+            
+
+
+            
 
         
         
+
+
+
+async def start_manager(bot ,msg ):
+    setting = con.setting
+    await bot.send_message(msg.from_user.id ,  setting.start_text , reply_markup = btn.user_panel())
+
+
+
+async def help_and_rule_manager(bot , msg ):
+    setting = con.setting
+    await bot.send_message(msg.from_user.id , setting.help_text , reply_markup= btn.help_and_rule_btn())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -38,8 +127,25 @@ async def callback_manager(bot, call):
 
     elif status == 'join' :
         await joined_handler(bot , call )
+    
+    elif status in ['help_text' , 'rule_text']:
+        await help_and_rule_call(bot , call )
 
         
+
+
+
+async def help_and_rule_call(bot , call ):
+    setting = con.setting
+    try :
+        if call.data == 'help_text' : 
+            await bot.edit_message_text(chat_id  = call.from_user.id , text = setting.help_text ,message_id = call.message.id , reply_markup = btn.help_and_rule_btn())
+        elif call.data == 'rule_text' : 
+            await bot.edit_message_text(chat_id  = call.from_user.id , text = setting.rule_text ,message_id = call.message.id , reply_markup = btn.help_and_rule_btn())
+    except :pass
+
+
+
 
 async def callino_amount_manager(bot , call ):
     try : 
@@ -54,7 +160,6 @@ async def callino_amount_manager(bot , call ):
 
 async def joined_handler(bot , call ):
     if con :
-
         channels = con.setting.channels
         not_join_channels = await join_checker(bot , call ,channels)
         if not_join_channels :

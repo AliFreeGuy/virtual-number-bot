@@ -70,7 +70,6 @@ async def user_not_join(_ , cli , msg ):
     if con and con.setting :
         channels = con.setting.channels
         is_join = await join_checker(cli , msg , channels)
-        print(is_join)
         if not is_join : return False
         else :return True
     else :return False

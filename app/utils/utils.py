@@ -16,11 +16,9 @@ async def join_checker(cli , msg , channels ):
     for i in my_channels : 
         try :data = await cli.get_chat_member(int(i['chat_id']), msg.from_user.id )
         except UserNotParticipant :
-            print('user no jonin ')
             not_join.append(i['link'])
         except Exception as e  : print(e)
 
-    print(not_join)
     return not_join
 
     
