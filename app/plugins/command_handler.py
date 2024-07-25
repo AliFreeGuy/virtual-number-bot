@@ -36,19 +36,30 @@ async def command_manager(bot, msg):
 
         elif msg.text in ['/support'  , 'پشتیبانی']:
             await support_manager(bot , msg )
+
+
+        elif msg.text in ['افزایش موجودی'] :
+            await inventoryـincrease(bot , msg )
             
+
+
+
+
+async def  inventoryـincrease(bot , msg ) :
+    print('hi user ')
+
+
+
+
 
 
 
 async def support_manager(bot ,msg ):
     setting = con.setting
     message = await bot.ask(chat_id = msg.from_user.id , text = setting.support_text , reply_to_message_id = msg.id )
-
     if message :
-
         if message.text and message.text == '/cancel' :
             await bot.ask(chat_id = msg.from_user.id , text = setting.start_text , reply_markup = btn.user_panel() )
-            
         else :
             user_profile = f'tg://openmessage?user_id={message.from_user.id}'
             await message.copy(config.ADMIN , reply_markup =btn.support_btn(
