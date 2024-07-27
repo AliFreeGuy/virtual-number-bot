@@ -35,6 +35,7 @@ async def updater(_ , cli , msg ):
 
 
 async def user_is_active(_ , cli , msg ):
+    
     user = con.get_user(msg.from_user.id )
     if user.is_active == True  :return True
     return False

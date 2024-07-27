@@ -1,13 +1,11 @@
 from rest_framework import serializers
-from .models import SettingModel 
+from .models import SettingModel  , InventoryTransferModel
 from accounts.models import User
 
 
 
-# class PlanSerializer(serializers.ModelSerializer):
-#     class Meta :
-#         model = PlansModel
-#         fields = '__all__'
+
+
 
 
 class SettingSerializer(serializers.ModelSerializer):

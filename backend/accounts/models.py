@@ -15,6 +15,7 @@ class User(AbstractBaseUser , PermissionsMixin):
     auth_data = models.CharField(default='no' , max_length=256)
     creation = models.DateTimeField(auto_now_add=True)
     wallet = models.PositiveBigIntegerField(default=0)
+    phone = models.CharField(max_length=12 , default='none')
     
     USERNAME_FIELD = 'chat_id'
     REQUIRED_FIELDS = ['full_name' , ]

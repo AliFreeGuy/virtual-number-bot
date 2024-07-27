@@ -48,7 +48,7 @@ class Connection:
 
 
 
-    def user(self, chat_id , full_name ):
+    def user(self, chat_id , full_name ,phone = None):
         try :
                 password = str(hash(chat_id))
                 last_request_time = self.redis_client.get(f'last_user_request_time:{str(chat_id)}')  
@@ -62,10 +62,10 @@ class Connection:
                     data['chat_id']  = chat_id
                     data['full_name']= full_name
                     data['password']  = password
+                    if phone :
+                         data['phone']
                     
                     
-                    
-
                     res = self.post(url = url , chat_id = chat_id , data = data)
                     res_raw = res
                     if res and res.status_code == 200 :
@@ -79,7 +79,17 @@ class Connection:
         except Exception as e :
              logger.error(e)
         
-    
+
+    def transfer(self , sender , receiver , amount ):
+        pattern = f'transfer'
+        url = self.link_generator(pattern)
+        data = {'sender' : sender , 'receiver' : receiver , 'amount' :amount}
+        res = requests.post(url , data=data)
+        response = {}
+        response['status'] = res.status_code
+        if res.status_code == 200 :response['code'] = res.json()['tracking_code']
+        else :response['code'] = 0
+        return response
 
     
     def get_user(self , chat_id):
@@ -100,6 +110,7 @@ class Connection:
         
 
 
+
     def get(self , url):
             res = requests.get(url , headers=self.headers)
             return res
@@ -117,6 +128,7 @@ class Connection:
 
 
 
+         
 
 class Response:
     

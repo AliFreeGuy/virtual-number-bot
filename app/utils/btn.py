@@ -3,6 +3,39 @@ import config
 
 
 
+
+
+
+
+
+
+
+def get_user_contact():
+    
+    marks = [
+                    
+                    [KeyboardButton('تایید شماره' , request_contact=True)],
+                    ['برگشت به منو قبل 🔙 ' ],
+            ]
+    return ReplyKeyboardMarkup(marks , resize_keyboard=True)
+
+
+
+
+
+
+def inventory_transfer(sender , recever , amount):
+    buttons = []
+    transfer_key = f'transfer:{str(sender)}_{str(recever)}_{str(amount)}'
+    buttons.append([InlineKeyboardButton(text='تایید و انتقال موجودی',callback_data=transfer_key),])
+    return InlineKeyboardMarkup(buttons)
+
+
+
+
+
+
+
 def join_channels_url(channels):
     persian_numbers = ['اول', 'دوم', 'سوم', 'چهارم', 'پنجم']  
     buttons = []

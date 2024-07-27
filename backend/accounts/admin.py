@@ -10,13 +10,13 @@ class CustomUserAdmin(UserAdmin):
     model = User
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
-    list_display = ('chat_id', 'full_name', 'is_admin', 'is_active' ,'is_auth' , 'auth_data', 'is_superuser', 'creation_shamsi', 'wallet')
+    list_display = ('chat_id', 'full_name','phone', 'is_admin', 'is_active' ,'is_auth' , 'auth_data', 'is_superuser', 'creation_shamsi', 'wallet')
     list_filter = ('is_admin', 'is_active','is_auth' )
     search_fields = ('chat_id', 'full_name')
     ordering = ('-creation',)
 
     fieldsets = (
-        (None, {'fields': ('chat_id', 'full_name', 'wallet' ,'password')}),
+        (None, {'fields': ('chat_id', 'full_name', 'wallet' ,'phone','password')}),
         ('Permissions', {'fields': ('is_admin', 'is_active','is_auth' , 'auth_data', 'is_superuser', 'groups',)}),
     )
 
@@ -27,7 +27,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('chat_id', 'full_name', 'password1', 'password2', 'is_admin', 'is_active', 'is_superuser' , 'wallet'),
+            'fields': ('chat_id', 'full_name','phone', 'password1', 'password2', 'is_admin', 'is_active', 'is_superuser' , 'wallet'),
         }),
     )
 

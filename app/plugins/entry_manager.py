@@ -6,6 +6,11 @@ from pyrogram import Client, filters
 from utils.utils import join_checker
 
 
+
+
+
+
+
 @Client.on_message(filters.private &f.updater &f.bot_is_off, group=0)
 async def bot_is_off(bot, msg):
     setting = con.setting

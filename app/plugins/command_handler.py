@@ -14,7 +14,6 @@ async def command_manager(bot, msg):
 
     if msg and msg.text :
 
-
         if msg.text == '/privacy' :
             setting  = con.setting
             await bot.send_message(msg.from_user.id , setting.privacy_text)
@@ -41,13 +40,49 @@ async def command_manager(bot, msg):
         elif msg.text in ['افزایش موجودی'] :
             await inventoryـincrease(bot , msg )
             
+        elif msg.text == 'برگشت به منو قبل 🔙':
+            await start_manager(bot , msg )
+        
+        elif msg.text == 'انتقال موجودی' : 
+            await inventory_transfer(bot , msg )
+
 
 
 
 
 async def  inventoryـincrease(bot , msg ) :
-    print('hi user ')
+    print('hi user')
 
+
+
+
+
+async def inventory_transfer(bot , msg ):
+    setting = con.setting
+    user = con.get_user(msg.from_user.id)
+    user_chat_id = await bot.ask(msg.from_user.id , setting.inventory_transfer_text , reply_to_message_id = msg.id )
+
+    if user_chat_id and user_chat_id.text and user_chat_id.text.isdigit():
+        user_transfer = con.get_user(int(user_chat_id.text))
+        
+        if user_transfer :
+            inventory = await bot.ask(msg.from_user.id  , setting.inventory_transfer_amount_text , reply_to_message_id = user_chat_id.id)
+            if inventory and inventory.text and inventory.text.isdigit():
+                print(user.wallet)
+                if int(inventory.text)<= user.wallet and user.wallet > 0 and msg.from_user.id != user_chat_id.text:
+                    sender = msg.from_user.id
+                    recever = user_chat_id.text
+                    amount = inventory.text
+                    await bot.send_message(chat_id  = msg.from_user.id ,
+                                            text = txt.inventory_transfer_confirmation(sender , recever , amount)  , 
+                                            reply_markup = btn.inventory_transfer(sender , recever , amount) ,
+                                            reply_to_message_id = inventory.id)
+                
+                else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
+            else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
+        else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
+    else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
+    
 
 
 
@@ -146,9 +181,30 @@ async def callback_manager(bot, call):
     
     elif status == 'answer' :
         await support_answer(bot , call )
+    
+    elif status == 'transfer' :
+        await inventory_transfer_call(bot , call )
 
     
 
+async def inventory_transfer_call(bot , call ):
+    setting = con.setting
+
+    data = call.data.split(':')[1]
+    sender = int(data.split('_')[0])
+    receiver = int(data.split('_')[1])
+    amount = int(data.split('_')[2])
+    data = con.transfer(sender , receiver , amount)
+
+    if data['status'] == 200 :
+        await bot.edit_message_text(chat_id = call.from_user.id ,
+                                    text = txt.success_transfer(text = call.message.text , status_code=data),
+                                    message_id = call.message.id
+                                    )
+        
+        await bot.send_message(chat_id = setting.backup_channel , text = txt.log_transfer(sender , receiver  , amount , data['code']))
+        user_wallet = con.get_user(int(receiver))
+        await bot.send_message(chat_id = int(receiver) , text = txt.success_transfer_text(amount , user_wallet.wallet))
 
 async def support_answer(bot , call ):
     user_chat_id = call.data.split(':')[1]
