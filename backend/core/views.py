@@ -4,10 +4,69 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework import status, permissions
 from . import serializers
 from accounts.models import User
+from django.conf import settings
 from django.http import JsonResponse
 from . import models
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views import View
+import requests
+import json
+
+sandbox = 'sandbox' if settings.DEBUG else 'www'
+ZP_API_REQUEST = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
+ZP_API_VERIFY = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
+ZP_API_STARTPAY = f"https://{sandbox}.zarinpal.com/pg/StartPay/"
+CallbackURL = 'http://127.0.0.1:8000/verify/'
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class PaymentView(View):
+    def post(self, request):
+        amount = request.POST.get('amount')
+        chat_id = request.POST.get('chat_id')
+        user = User.objects.get(chat_id = chat_id)
+        setting = models.SettingModel.objects.first()
+
+        data = {
+            "MerchantID": setting.zarin_key,
+            "Amount": int(amount),
+            "Description": setting.payment_description,
+            "Phone": '09123456789',
+            "CallbackURL": CallbackURL,
+        }
+        data = json.dumps(data)
+        headers = {'content-type': 'application/json', 'content-length': str(len(data)) }
+    
+        try:
+            response = requests.post(ZP_API_REQUEST, data=data, headers=headers, timeout=10)
+            print(response.status_code)
+            if response.status_code == 200:
+                response_data = response.json()
+                
+                if response_data['Status'] == 100:
+                    models.UserPaymentModel.objects.create(
+                        user = user ,
+                        amount = amount ,
+                        key = str(response_data['Authority']),
+                        status = True
+                        )
+                    return JsonResponse({'status': True, 'url':ZP_API_STARTPAY + str(response_data['Authority']), 'authority': response_data['Authority']})
+                else:
+                    models.UserPaymentModel.objects.create(
+                        user = user ,
+                        amount = amount ,
+                        key = str(response_data['Authority']),
+                        status = False
+                        )
+                    return JsonResponse({'status': False, 'code': str(response_data['Status'])})
+                
+            return JsonResponse({'status': False, 'code': 'unexpected error'})
+        except requests.exceptions.Timeout:
+            return JsonResponse({'status': False, 'code': 'timeout'})
+        except requests.exceptions.ConnectionError:
+            return JsonResponse({'status': False, 'code': 'connection error'})
+            
 
 
 
@@ -20,6 +79,7 @@ class UserUpdateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+     
         try :
             chat_id = request.data.get('chat_id')
             if not chat_id:
@@ -33,6 +93,7 @@ class UserUpdateAPIView(APIView):
                 serializer = serializers.UserSerializer(data=request.data)
             
             if serializer.is_valid():
+                
                 user = serializer.save()
                 return Response(serializers.UserSerializer(user).data, status=status.HTTP_200_OK)
             else:
@@ -62,14 +123,27 @@ class SettingAPIView(APIView):
 
 
 
+class UpdatePhoneUserAPIView(APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated]
 
-
-
-
+    def post(self , request) :
+        chat_id = request.data.get('chat_id')
+        phone = request.data.get('phone')
+        user = User.objects.filter(chat_id= chat_id)
+        if user.exists :
+            user = user.first()
+            user.phone = phone
+            user.save()
+            return Response({'status': 'ok',}, status=status.HTTP_200_OK) 
+        return Response({'status': 'ok',}, status=status.HTTP_404_NOT_FOUND) 
 
 
 
 class InventoryTransferAPIView(APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated]
+
 
     def post(self, request, *args, **kwargs):
         sender_id = request.data.get('sender')

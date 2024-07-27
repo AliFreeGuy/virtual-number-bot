@@ -4,6 +4,17 @@ import random
 # Create your models here.
 
 
+class UserPaymentModel(models.Model):
+    user  = models.ForeignKey(User , on_delete=models.CASCADE , related_name='payments')
+    status = models.BooleanField(default=False)
+    amount = models.BigIntegerField()
+    key = models.CharField(max_length=300)
+    creation = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f'{str(self.user)} - {str(self.amount)} - {str(self.status)}'
+    
+
 class SettingModel(models.Model):
 
     bot_status = models.BooleanField(default=True)
@@ -32,12 +43,14 @@ class SettingModel(models.Model):
     privacy_text = models.TextField(default='متن حریم خصوصی')
     approvalـrules = models.TextField(default='متن تایید قوانین ')
     inventory_increase_text = models.TextField(default='متن افزایش موجودی')
+    get_user_amount_text = models.TextField(default='متن ارسال مقدار شارژ حساب')
     auth_text = models.TextField(default='متن احراز هویت')
     auth_phone_text = models.TextField(default='متن تایید شماره تلفن')
     ir_phone_only_text = models.TextField(default='متن افزایش موجودی فقط با شماره ایرانی')
     inventory_transfer_text = models.TextField(default='متن انتقال موجودی')
     inventory_transfer_error_text = models.TextField(default='متن خطایه انتقال موجودی')
     inventory_transfer_amount_text = models.TextField(default='متن مقدار انتقال موجودی')
+    payment_description = models.TextField(default='متن صفحه درگاه پرداخت')
 
 
 

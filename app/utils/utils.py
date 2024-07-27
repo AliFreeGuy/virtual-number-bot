@@ -32,3 +32,14 @@ async def alert(client ,call , msg = None ):
         else : await call.answer(msg , show_alert = True)
     except Exception as e : print('alert ' , str(e))
     
+
+
+
+async def deleter(client , call , message_id ):
+    try :
+        message_id = message_id
+        msg_ids = []
+        for x in range(100) :
+            msg_ids.append(message_id + x)
+        await client.delete_messages(call.from_user.id  ,msg_ids )
+    except :pass

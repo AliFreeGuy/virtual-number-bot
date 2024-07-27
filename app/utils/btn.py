@@ -6,12 +6,14 @@ import config
 
 
 
-
+def inventory_increase_btn():
+    buttons = []
+    buttons.append([InlineKeyboardButton(text='افزایش موجودی',callback_data='inventory_increase'),])
+    return InlineKeyboardMarkup(buttons)
 
 
 
 def get_user_contact():
-    
     marks = [
                     
                     [KeyboardButton('تایید شماره' , request_contact=True)],
@@ -21,7 +23,8 @@ def get_user_contact():
 
 
 
-
+def payment_btn(data):
+    return InlineKeyboardMarkup([[InlineKeyboardButton(text='ورود به درگاه پرداخت',url=data['url']),]])
 
 
 def inventory_transfer(sender , recever , amount):

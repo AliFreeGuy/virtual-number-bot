@@ -27,6 +27,9 @@ def success_transfer(text , status_code):
     
 
 
+err_inventory_increase = 'خطا لطفا دوباره تلاش کنید !'
+err_limit_amount = 'خطا مبلغ وارد شده معتبر نیست لطفا دوباره تلاش کنید !'
+
 def log_transfer(sender_username, receiver_username, amount, code):
     sender_link = f"tg://openmessage?user_id={sender_username}"
     receiver_link = f"tg://openmessage?user_id={receiver_username}"
@@ -39,6 +42,15 @@ def log_transfer(sender_username, receiver_username, amount, code):
 کد پیگیری : {code}
 '''
     return text
+
+
+
+
+
+def payment_text(text):
+    return f'{text}\n\n✅ برای ورود به درگاه بر روی دکمه زیر بزنید'
+
+
 
 
 def success_transfer_text(amoutn ,user_wallet ):

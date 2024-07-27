@@ -3,7 +3,7 @@ from utils import logger , cache  , btn , txt
 from utils import filters as f
 from utils.connection import connection as con
 import requests
-from utils.utils import alert
+from utils.utils import alert , deleter
 from utils.utils import join_checker
 import config
 
@@ -11,7 +11,6 @@ import config
 @Client.on_message(f.updater &f.bot_is_on & f.user_is_active & f.user_is_join, group=2)
 async def command_manager(bot, msg):
     
-
     if msg and msg.text :
 
         if msg.text == '/privacy' :
@@ -46,13 +45,26 @@ async def command_manager(bot, msg):
         elif msg.text == 'انتقال موجودی' : 
             await inventory_transfer(bot , msg )
 
+    elif msg.contact :
+        setting = con.setting
+        user_phone = str(msg.contact.phone_number)
+        user = con.update_phone(chat_id=msg.from_user.id , phone=user_phone)
+        if user == 200 :
+            await bot.send_message(msg.from_user.id , text = setting.inventory_increase_text , reply_markup = btn.inventory_increase_btn())
+
+
+        
+
 
 
 
 
 async def  inventoryـincrease(bot , msg ) :
-    print('hi user')
-
+    setting = con.setting
+    user = con.get_user(msg.from_user.id)
+    await bot.send_message(msg.from_user.id , text = setting.inventory_increase_text , reply_markup = btn.inventory_increase_btn())
+    if setting.auth_phone and user.phone == 'none' :
+                await bot.send_message(msg.from_user.id , text = setting.auth_phone_text , reply_markup = btn.get_user_contact())
 
 
 
@@ -189,18 +201,77 @@ async def callback_manager(bot, call):
         await bot.delete_messages(call.from_user.id , call.message.id)
         await alert(bot  , call , msg='عملیات با موفقیت کنسل شد !')
         await start_manager(bot , call )
+    
+    elif status == 'inventory_increase' :
+        await inventory_increase_manager(bot , call )
+
+
+
+
+
+async def inventory_increase_manager(bot , call):
+    user = con.get_user(call.from_user.id)
+    setting = con.setting
+    validates = []
+
+    if setting.auth_status and not user.is_auth:
+        validates.append(setting.auth_text)
+    
+    if setting.auth_phone and user.phone == 'none':
+        validates.append(setting.auth_phone_text)
+
+    if setting.ir_phone_only and not (user.phone.startswith('+98') or user.phone.startswith('98')):
+        validates.append(setting.ir_phone_only_text)
+
+    if not validates:
+
+        await deleter(bot , call , call.message.id +1 )
+        amount =await  bot.ask(chat_id = call.from_user.id , text = setting.inventory_increase_text  , reply_to_message_id = call.message.id)
+
+        if amount and amount.text and amount.text.isdigit() :
+            
+            user_amount = int(amount.text)
+
+            if user_amount <= setting.user_limit_pay :
+
+                paymnet_data = con.payment_url(chat_id=call.from_user.id , amount=user_amount)
+                print(paymnet_data)
+                if paymnet_data :
+                    await bot.edit_message_text(chat_id = call.from_user.id ,
+                                                text = txt.payment_text(call.message.text) ,
+                                                message_id = call.message.id ,
+                                                reply_markup = btn.payment_btn(paymnet_data) 
+                                                )
+            
+            else :await alert(bot , call ,msg=txt.err_limit_amount)
+
+
+
+
+
+
+
+        else : await alert(bot , call , msg=txt.err_inventory_increase)
+        await deleter(bot , call , call.message.id +1 )
+    else :await alert(bot , call , msg=validates[0])
+
+    
+
+
+
+
+
+
 
     
 
 async def inventory_transfer_call(bot , call ):
     setting = con.setting
-
     data = call.data.split(':')[1]
     sender = int(data.split('_')[0])
     receiver = int(data.split('_')[1])
     amount = int(data.split('_')[2])
     data = con.transfer(sender , receiver , amount)
-
     if data['status'] == 200 :
         await bot.edit_message_text(chat_id = call.from_user.id ,
                                     text = txt.success_transfer(text = call.message.text , status_code=data),
@@ -211,18 +282,18 @@ async def inventory_transfer_call(bot , call ):
         user_wallet = con.get_user(int(receiver))
         await bot.send_message(chat_id = int(receiver) , text = txt.success_transfer_text(amount , user_wallet.wallet))
 
+
+
+
+
+
 async def support_answer(bot , call ):
     user_chat_id = call.data.split(':')[1]
     user_message_id = call.data.split(':')[2]
-
     admin_msg = await bot.ask(chat_id = call.from_user.id , text = txt.admin_message , reply_to_message_id = call.message.id )
-
     if admin_msg :
-
-        
         if admin_msg.text and admin_msg.text == '/cancel' :
             await alert(bot , call , msg = txt.admin_message_cancel)
-            
         else :
             await admin_msg.copy(int(user_chat_id)  , reply_to_message_id = int(user_message_id) )
             await alert(bot , call , msg = txt.admin_message_sended)
@@ -248,6 +319,8 @@ async def help_and_rule_call(bot , call ):
 
 
 
+
+
 async def callino_amount_manager(bot , call ):
     try : 
         setting = con.setting
@@ -257,6 +330,12 @@ async def callino_amount_manager(bot , call ):
             await alert(bot , call , msg=f'موجودی حساب کالینو : {data["balance"]}')
     except Exception as e :
         await alert(bot , call , msg= str(e))
+
+
+
+
+
+
 
 
 async def joined_handler(bot , call ):

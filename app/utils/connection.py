@@ -48,48 +48,54 @@ class Connection:
 
 
 
-    def user(self, chat_id , full_name ,phone = None):
-        try :
-                password = str(hash(chat_id))
-                last_request_time = self.redis_client.get(f'last_user_request_time:{str(chat_id)}')  
-                current_time = time.time()
-                if last_request_time is None or current_time - float(last_request_time) > CACHE_TTL:
+    def user(self, chat_id, full_name):
+      
+        try:
+            password = str(hash(chat_id))
+            last_request_time = self.redis_client.get(f'last_user_request_time:{str(chat_id)}')
+            current_time = time.time()
+            if last_request_time is None or current_time - float(last_request_time) > CACHE_TTL:
 
-                    pattern  = 'user_update'
-                    data = {}  
-                    url = self.link_generator(pattern)
-                    data['url'] = url
-                    data['chat_id']  = chat_id
-                    data['full_name']= full_name
-                    data['password']  = password
-                    if phone :
-                         data['phone']
-                    
-                    
-                    res = self.post(url = url , chat_id = chat_id , data = data)
-                    res_raw = res
-                    if res and res.status_code == 200 :
-                        res = Response(res.json())
-                        self.redis_client.set(f'user_data:{str(chat_id)}', json.dumps(res_raw.json()))
-                        self.redis_client.set(f'last_user_request_time:{str(chat_id)}', current_time)
-                        return res
-                else :
-                    return Response(json.loads(self.redis_client.get(f'user_data:{str(chat_id)}')))
-                return None 
-        except Exception as e :
-             logger.error(e)
-        
+                pattern = 'user_update'
+                data = {}
+                url = self.link_generator(pattern)
+                data['url'] = url
+                data['chat_id'] = chat_id
+                data['full_name'] = full_name
+                data['password'] = password
+           
+                res = self.post(url=url, chat_id=chat_id, data=data)
+                res_raw = res
+                if res and res.status_code == 200:
+                    res = Response(res.json())
+                    self.redis_client.set(f'user_data:{str(chat_id)}', json.dumps(res_raw.json()))
+                    self.redis_client.set(f'last_user_request_time:{str(chat_id)}', current_time)
+                    return res
+            else:
+                return Response(json.loads(self.redis_client.get(f'user_data:{str(chat_id)}')))
+            return None
+        except Exception as e:
+            logger.error(e)
+
 
     def transfer(self , sender , receiver , amount ):
         pattern = f'transfer'
         url = self.link_generator(pattern)
         data = {'sender' : sender , 'receiver' : receiver , 'amount' :amount}
-        res = requests.post(url , data=data)
+        res = requests.post(url = url , data=data , headers=self.headers)
         response = {}
         response['status'] = res.status_code
         if res.status_code == 200 :response['code'] = res.json()['tracking_code']
         else :response['code'] = 0
         return response
+    
+
+    def update_phone(self , chat_id , phone):
+         pattern = 'update_phone'
+         url = self.link_generator(pattern)
+         data = {'chat_id' : chat_id , 'phone' : phone}
+         res = requests.post(url = url , data = data , headers=self.headers)
+         return res.status_code
 
     
     def get_user(self , chat_id):
@@ -109,6 +115,15 @@ class Connection:
             return None
         
 
+    def payment_url(self , chat_id , amount ):
+         
+        pattern = 'request'
+        url = self.link_generator(pattern )
+        data = {'chat_id' : chat_id , 'amount' : amount}
+        res = requests.post(url= url , data=data , headers=self.headers)
+        if res.status_code == 200 : 
+            return res.json()
+        return None
 
 
     def get(self , url):
