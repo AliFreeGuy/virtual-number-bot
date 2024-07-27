@@ -28,6 +28,7 @@ def inventory_transfer(sender , recever , amount):
     buttons = []
     transfer_key = f'transfer:{str(sender)}_{str(recever)}_{str(amount)}'
     buttons.append([InlineKeyboardButton(text='تایید و انتقال موجودی',callback_data=transfer_key),])
+    buttons.append([InlineKeyboardButton(text='کنسل',callback_data='cancel_transfer'),])
     return InlineKeyboardMarkup(buttons)
 
 

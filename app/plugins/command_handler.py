@@ -184,6 +184,11 @@ async def callback_manager(bot, call):
     
     elif status == 'transfer' :
         await inventory_transfer_call(bot , call )
+    
+    elif status == 'cancel_transfer' :
+        await bot.delete_messages(call.from_user.id , call.message.id)
+        await alert(bot  , call , msg='عملیات با موفقیت کنسل شد !')
+        await start_manager(bot , call )
 
     
 
