@@ -7,6 +7,7 @@ from core.models import SendMessageModel , SettingModel
 from os import environ as env
 from accounts.models import User
 import logging
+import jdatetime
 
 
 PROXY = {"scheme": 'socks5',
@@ -58,24 +59,28 @@ def sendmessage_task(msg_id):
 
 
 @shared_task
-def send_message(status , chat_id  , amount     ):
+def send_message(status, chat_id, amount, date):
     setting = SettingModel.objects.first()
-    if settings.DEBUG  : bot = Client('send_message' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token , proxy=PROXY)
-    else :bot = Client('send_message' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token)
+    if settings.DEBUG:
+        bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, bot_token=setting.bot_token, proxy=PROXY)
+    else:
+        bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, bot_token=setting.bot_token)
 
-
-    if status == 'ok' :
+    if status == 'ok':
         success_message = f'با موفقیت مقدار {str(amount)} تومان حساب شما شارژ شد !'
-        chat_link =  f"tg://openmessage?user_id={str(chat_id)}"
-    
+        chat_link = f"tg://openmessage?user_id={str(chat_id)}"
+        
+        # تبدیل تاریخ ایجاد به شمسی
+        creation_date_jalali = jdatetime.datetime.fromgregorian(datetime=date).strftime('%Y/%m/%d %H:%M:%S')
+        
         bakcup_text = f'''
 ✅ پرداخت موفق
 
 کاربر : [ {str(chat_id)} ]({chat_link})
 مقدار شارژ : {amount}
+تاریخ : {creation_date_jalali}
 '''
 
-
-        with bot :
-            bot.send_message(chat_id = chat_id , text = success_message)
-            bot.send_message(chat_id=int(setting.backup_channel ) , text =bakcup_text )
+        with bot:
+            bot.send_message(chat_id=chat_id, text=success_message)
+            bot.send_message(chat_id=int(setting.backup_channel), text=bakcup_text)

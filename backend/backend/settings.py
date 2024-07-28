@@ -263,3 +263,5 @@ CELERY_TIMEZONE = 'Asia/Tehran'
 
 
 
+TIME_ZONE = 'Asia/Tehran'
+USE_TZ = True

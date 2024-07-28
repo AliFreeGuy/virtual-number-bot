@@ -103,7 +103,7 @@ def verify(request):
                 print(f' ****************************************** pardakht movafagh ******************************************')
                 user_chat_id = payment_data.user.chat_id
                 user_amount = payment_data.amount
-                send_message.delay(status = 'ok' , chat_id=user_chat_id ,amount = user_amount )
+                send_message.delay(status = 'ok' , chat_id=user_chat_id ,amount = user_amount , date = payment_data.creation )
                 print(f' ****************************************** pardakht movafagh ******************************************')
                 return render(request, 'core/success.html')
             
