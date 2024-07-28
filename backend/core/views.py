@@ -96,34 +96,23 @@ def verify(request):
         response = requests.post(ZP_API_VERIFY, data=data, headers=headers)        
         if response.status_code == 200:
             response_data = response.json()
+            
             if response_data['Status'] == 100:
                 payment_data.status = True
                 payment_data.save()
-
-
-
                 print(f' ****************************************** pardakht movafagh ******************************************')
                 user_chat_id = payment_data.user.chat_id
                 user_amount = payment_data.amount
                 send_message.delay(status = 'ok' , chat_id=user_chat_id ,amount = user_amount )
-
-
                 print(f' ****************************************** pardakht movafagh ******************************************')
-
-
-
                 return render(request, 'core/success.html')
+            
             else:
-
-
                 payment_data.status = False
                 payment_data.save()
-
-
                 print(f'****************************************** pardakht namovafagh ******************************************')
                 user_chat_id = payment_data.user.chat_id
                 user_amount = payment_data.amount
-               
                 print(f'****************************************** pardakht namovafagh ******************************************')
 
 
