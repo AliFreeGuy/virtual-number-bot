@@ -9,13 +9,14 @@ from accounts.models import User
 import logging
 
 
+PROXY = {"scheme": 'socks5',
+            "hostname": '127.0.0.1',
+            "port": 1080}
+
+
 
 @shared_task
 def sendmessage_task(msg_id):
-    PROXY = {"scheme": env.get("PROXY_SCHEME"),
-            "hostname": env.get("PROXY_HOSTNAME"),
-            "port": int(env.get("PROXY_PORT"))}
-    
 
     msg = SendMessageModel.objects.filter(id = msg_id)
     setting = SettingModel.objects.first()
@@ -53,3 +54,28 @@ def sendmessage_task(msg_id):
                     try : bot.send_message(chat_id=int(user.chat_id)  , text = msg.text)
                     except Exception as e :logging.warning(e)
             
+
+
+
+@shared_task
+def send_message(status , chat_id  , amount     ):
+    setting = SettingModel.objects.first()
+    if settings.DEBUG  : bot = Client('send_message' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token , proxy=PROXY)
+    else :bot = Client('send_message' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token)
+
+
+    if status == 'ok' :
+        success_message = f'با موفقیت مقدار {str(amount)} تومان حساب شما شارژ شد !'
+        chat_link =  f"tg://openmessage?user_id={str(chat_id)}"
+    
+        bakcup_text = f'''
+✅ پرداخت موفق
+
+کاربر : [ {str(chat_id)} ]({chat_link})
+مقدار شارژ : {amount}
+'''
+
+
+        with bot :
+            bot.send_message(chat_id = chat_id , text = success_message)
+            bot.send_message(chat_id=int(setting.backup_channel ) , text =bakcup_text )

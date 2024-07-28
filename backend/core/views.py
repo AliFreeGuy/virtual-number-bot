@@ -5,6 +5,7 @@ from rest_framework import status, permissions
 from . import serializers
 from accounts.models import User
 from django.conf import settings
+from django.shortcuts import render
 from django.http import JsonResponse
 from . import models
 from django.utils.decorators import method_decorator
@@ -12,6 +13,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import requests
 import json
+from core.tasks import send_message
+
+
+
 
 sandbox = 'sandbox' if settings.DEBUG else 'www'
 ZP_API_REQUEST = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
@@ -67,6 +72,69 @@ class PaymentView(View):
         except requests.exceptions.ConnectionError:
             return JsonResponse({'status': False, 'code': 'connection error'})
             
+
+
+
+
+
+
+
+def verify(request):
+
+    authority = request.GET.get('Authority')
+    payment_data = models.UserPaymentModel.objects.get(key = authority)
+    setting = models.SettingModel.objects.first()
+
+    if authority:
+        data = {
+            "MerchantID": setting.zarin_key,
+            "Amount": int(payment_data.amount),
+            "Authority": authority,
+        }
+        data = json.dumps(data)
+        headers = {'content-type': 'application/json', 'content-length': str(len(data))}
+        response = requests.post(ZP_API_VERIFY, data=data, headers=headers)        
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data['Status'] == 100:
+                payment_data.status = True
+                payment_data.save()
+
+
+
+                print(f' ****************************************** pardakht movafagh ******************************************')
+                user_chat_id = payment_data.user.chat_id
+                user_amount = payment_data.amount
+                send_message.delay(status = 'ok' , chat_id=user_chat_id ,amount = user_amount )
+
+
+                print(f' ****************************************** pardakht movafagh ******************************************')
+
+
+
+                return render(request, 'core/success.html')
+            else:
+
+
+                payment_data.status = False
+                payment_data.save()
+
+
+                print(f'****************************************** pardakht namovafagh ******************************************')
+                user_chat_id = payment_data.user.chat_id
+                user_amount = payment_data.amount
+               
+                print(f'****************************************** pardakht namovafagh ******************************************')
+
+
+                return render(request, 'core/unsuccess.html')
+        return render(request,  'core/unsuccess.html')
+    return render(request,  'core/unsuccess.html')
+
+
+
+
+
 
 
 

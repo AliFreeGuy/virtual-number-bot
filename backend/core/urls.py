@@ -11,6 +11,8 @@ urlpatterns = [
     path('api/update_phone/' , views.UpdatePhoneUserAPIView.as_view() , name = 'update_phone'),
 
     path('api/request/', views.PaymentView.as_view(), name='request'),
+    path('verify/', views.verify , name='verify'),
+
 
     # path('api/plans/' , views.PlansAPIView.as_view() ,name='plans') ,
 
