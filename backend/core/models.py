@@ -4,16 +4,7 @@ import random
 # Create your models here.
 
 
-class UserPaymentModel(models.Model):
-    user  = models.ForeignKey(User , on_delete=models.CASCADE , related_name='payments')
-    status = models.BooleanField(default=False)
-    amount = models.BigIntegerField()
-    key = models.CharField(max_length=300)
-    creation = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self) -> str:
-        return f'{str(self.user)} - {str(self.amount)} - {str(self.status)}'
-    
 
 class SettingModel(models.Model):
 
@@ -75,7 +66,16 @@ class SettingModel(models.Model):
 
 
 
+class UserPaymentModel(models.Model):
+    user  = models.ForeignKey(User , on_delete=models.CASCADE , related_name='payments')
+    status = models.BooleanField(default=False)
+    amount = models.BigIntegerField()
+    key = models.CharField(max_length=300)
+    creation = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self) -> str:
+        return f'{str(self.user)} - {str(self.amount)} - {str(self.status)}'
+    
 
 
 

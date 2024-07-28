@@ -39,6 +39,31 @@ def inventory_transfer(sender , recever , amount):
 
 
 
+def profile_data_btn(back = False):
+    buttons = []
+    
+    if not back :
+        buttons.append([InlineKeyboardButton(text='احراز هویت',callback_data='authentication'),])
+        buttons.append([InlineKeyboardButton(text='واریز ها',callback_data='deposits'),
+                        InlineKeyboardButton(text='انتقالی ها',callback_data='transitions'),
+                        InlineKeyboardButton(text='سفارش ها',callback_data='orders')])
+    
+    else : 
+        buttons.append([
+                        InlineKeyboardButton(text='🔙',callback_data='back_profile'),
+                        InlineKeyboardButton(text='احراز هویت',callback_data='authentication'),])
+        
+        buttons.append([InlineKeyboardButton(text='واریز ها',callback_data='deposits'),
+                        InlineKeyboardButton(text='انتقالی ها',callback_data='transitions'),
+                        InlineKeyboardButton(text='سفارش ها',callback_data='orders')])
+
+    return InlineKeyboardMarkup(buttons)
+
+
+
+
+
+
 
 def join_channels_url(channels):
     persian_numbers = ['اول', 'دوم', 'سوم', 'چهارم', 'پنجم']  

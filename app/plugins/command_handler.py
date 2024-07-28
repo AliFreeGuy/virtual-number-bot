@@ -6,7 +6,8 @@ import requests
 from utils.utils import alert , deleter
 from utils.utils import join_checker
 import config
-
+import jdatetime
+from datetime import datetime
 
 @Client.on_message(f.updater &f.bot_is_on & f.user_is_active & f.user_is_join, group=2)
 async def command_manager(bot, msg):
@@ -69,7 +70,8 @@ async def command_manager(bot, msg):
 
 
 async def profile_manager(bot , msg ):
-    print('hi user ')
+    user = con.get_user(msg.from_user.id)
+    await bot.send_message(chat_id = msg.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn() , reply_to_message_id = msg.id)
 
 
     
@@ -219,6 +221,56 @@ async def callback_manager(bot, call):
     
     elif status == 'inventory_increase' :
         await inventory_increase_manager(bot , call )
+
+    
+    elif status == 'deposits' :
+        await deposits_manager(bot , call )
+    
+    elif status == 'back_profile' :
+        await back_profile_manager(bot , call )
+    
+    elif status == 'transitions' :
+        await transitions_manager(bot , call )
+        
+
+
+
+
+
+async def back_profile_manager(bot , call ):
+    user = con.get_user(call.from_user.id)
+    await bot.edit_message_text(chat_id = call.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn() , message_id = call.message.id)
+
+
+
+async def transitions_manager(bot, call):
+    user = con.get_user(call.from_user.id)
+    print(user.transfers)  # این خط برای دیباگ نگه داشته شده است
+    text = []
+    user.transfers.sort(key=lambda x: x['creation_date'], reverse=True)
+    recent_transfers = user.transfers[:5][::-1]
+    for transfer in recent_transfers:
+        creation_date = datetime.strptime(transfer['creation_date'][:19], '%Y-%m-%dT%H:%M:%S')
+        shamsi_date = jdatetime.datetime.fromgregorian(datetime=creation_date).strftime('%Y/%m/%d %H:%M:%S')
+        sender_id = transfer['sender_chat_id']
+        receiver_id = transfer['receiver_chat_id']
+        text.append(f"تاریخ: {shamsi_date}\nفرستنده: {sender_id}\nگیرنده: {receiver_id}\nمقدار: {transfer['amount']} تومان")
+    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(back=True))
+
+
+
+async def deposits_manager(bot, call):
+    user = con.get_user(call.from_user.id)
+    text = []
+    user.payments.sort(key=lambda x: x['creation'], reverse=True)
+    recent_payments = user.payments[:10][::-1]
+    for payment in recent_payments:
+        creation_date = datetime.strptime(payment['creation'][:19], '%Y-%m-%dT%H:%M:%S')
+        shamsi_date = jdatetime.datetime.fromgregorian(datetime=creation_date).strftime('%Y/%m/%d %H:%M:%S')
+        status_text = '✅ پرداخت موفق' if payment['status'] else '❌ پرداخت ناموفق'
+        text.append(f"تاریخ: {shamsi_date}\n{status_text} | {payment['amount']} تومان")
+    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(back=True))
+
 
 
 
