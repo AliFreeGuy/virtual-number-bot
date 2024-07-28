@@ -44,6 +44,10 @@ async def command_manager(bot, msg):
         
         elif msg.text == 'انتقال موجودی' : 
             await inventory_transfer(bot , msg )
+        
+        elif msg.text in ['/profile' , 'حساب کاربری']:
+            await profile_manager(bot , msg )
+        
 
     elif msg.contact :
         setting = con.setting
@@ -58,6 +62,17 @@ async def command_manager(bot, msg):
 
 
 
+
+
+
+
+
+
+async def profile_manager(bot , msg ):
+    print('hi user ')
+
+
+    
 
 async def  inventoryـincrease(bot , msg ) :
     setting = con.setting
