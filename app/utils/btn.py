@@ -1,6 +1,6 @@
 from pyrogram.types import (ReplyKeyboardMarkup, InlineKeyboardMarkup,InlineKeyboardButton , KeyboardButton , WebAppInfo)
 import config
-
+import jdatetime
 
 
 
@@ -38,8 +38,28 @@ def inventory_transfer(sender , recever , amount):
 
 
 
+def user_auth_btn(user ):
+    buttons = []
+    now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
+    buttons.append([InlineKeyboardButton(text=now_date_time,callback_data='date_time'),])
+    buttons.append([
+                    InlineKeyboardButton(text='پروفایل 👤',url= f"tg://openmessage?user_id={user.chat_id}"),
+                    InlineKeyboardButton(text='اطلاعات 📇',url= f"{config.ADMIN_PANEL}accounts/user/{str(user.id)}/change/"),
+                    ])
 
-def profile_data_btn(back = False):
+
+      
+        
+       
+
+    return InlineKeyboardMarkup(buttons)
+
+
+
+
+def profile_data_btn(user , back = False , auth = False ):
+    is_auth = user.is_auth
+    
     buttons = []
     
     if not back :
@@ -49,9 +69,16 @@ def profile_data_btn(back = False):
                         InlineKeyboardButton(text='سفارش ها',callback_data='orders')])
     
     else : 
-        buttons.append([
+
+        if not auth :
+            buttons.append([
                         InlineKeyboardButton(text='🔙',callback_data='back_profile'),
                         InlineKeyboardButton(text='احراز هویت',callback_data='authentication'),])
+        else :
+            buttons.append([
+                        InlineKeyboardButton(text='🔙',callback_data='back_profile'),
+                        InlineKeyboardButton(text='ارسال مدارک',callback_data='send_auth_data'),])
+
         
         buttons.append([InlineKeyboardButton(text='واریز ها',callback_data='deposits'),
                         InlineKeyboardButton(text='انتقالی ها',callback_data='transitions'),

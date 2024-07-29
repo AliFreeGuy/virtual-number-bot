@@ -36,6 +36,8 @@ class SettingModel(models.Model):
     inventory_increase_text = models.TextField(default='متن افزایش موجودی')
     get_user_amount_text = models.TextField(default='متن ارسال مقدار شارژ حساب')
     auth_text = models.TextField(default='متن احراز هویت')
+    send_auth_data_text = models.TextField(default='متن ارسال مدارک احراز هویت')
+    received_auth_text =models.TextField(default='متن مدارک شما دریافت شد')
     auth_phone_text = models.TextField(default='متن تایید شماره تلفن')
     ir_phone_only_text = models.TextField(default='متن افزایش موجودی فقط با شماره ایرانی')
     inventory_transfer_text = models.TextField(default='متن انتقال موجودی')

@@ -71,7 +71,7 @@ async def command_manager(bot, msg):
 
 async def profile_manager(bot , msg ):
     user = con.get_user(msg.from_user.id)
-    await bot.send_message(chat_id = msg.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn() , reply_to_message_id = msg.id)
+    await bot.send_message(chat_id = msg.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn(user) , reply_to_message_id = msg.id)
 
 
     
@@ -231,15 +231,61 @@ async def callback_manager(bot, call):
     
     elif status == 'transitions' :
         await transitions_manager(bot , call )
+    
+    elif status == 'authentication' :
+        await  authentication_manager(bot , call )
+    
+    elif status == 'send_auth_data' :
+        await send_auth_data_manager(bot , call )
+    
+    elif status== 'auth_user' :
+        await auth_user_manager(bot , call )
         
 
+
+
+async def auth_user_manager(bot , call ):
+    user = call.data.split(':')[2]
+    status = call.data.split(':')[1]
+
+    
+
+
+
+
+
+async def send_auth_data_manager(bot , call ):
+
+    user= con.get_user(call.from_user.id)
+    
+    if user.is_auth is False : 
+        setting = con.setting
+        user_auth = await bot.ask(chat_id = call.from_user.id , text = txt.send_user_auth , reply_to_message_id = call.message.id )
+        await user_auth.copy(chat_id = int(setting.backup_channel) ,reply_markup = btn.user_auth_btn(user =user  ) )
+        await bot.send_message(chat_id = call.from_user.id , text = setting.received_auth_text )
+
+    else :
+        await alert(bot , call , txt.user_is_auth)
+    
+
+
+
+
+
+async def authentication_manager(bot , call ):
+    setting = con.setting
+    user = con.get_user(call.from_user.id)
+    await bot.edit_message_text(chat_id = call.from_user.id ,
+                                text = setting.send_auth_data_text ,
+                                message_id = call.message.id ,
+                                reply_markup = btn.profile_data_btn(user = user , back=True , auth=True))
 
 
 
 
 async def back_profile_manager(bot , call ):
     user = con.get_user(call.from_user.id)
-    await bot.edit_message_text(chat_id = call.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn() , message_id = call.message.id)
+    await bot.edit_message_text(chat_id = call.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn(user=user) , message_id = call.message.id)
 
 
 
@@ -255,7 +301,7 @@ async def transitions_manager(bot, call):
         sender_id = transfer['sender_chat_id']
         receiver_id = transfer['receiver_chat_id']
         text.append(f"تاریخ: {shamsi_date}\nفرستنده: {sender_id}\nگیرنده: {receiver_id}\nمقدار: {transfer['amount']} تومان")
-    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(back=True))
+    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(user = user , back=True))
 
 
 
@@ -269,7 +315,7 @@ async def deposits_manager(bot, call):
         shamsi_date = jdatetime.datetime.fromgregorian(datetime=creation_date).strftime('%Y/%m/%d %H:%M:%S')
         status_text = '✅ پرداخت موفق' if payment['status'] else '❌ پرداخت ناموفق'
         text.append(f"تاریخ: {shamsi_date}\n{status_text} | {payment['amount']} تومان")
-    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(back=True))
+    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(user = user , back=True))
 
 
 

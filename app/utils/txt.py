@@ -1,8 +1,7 @@
 
 import jdatetime
 from datetime import datetime
-
-
+import jdatetime
 
 admin_panel = 'منو مدیریت ربات :'
 recaved_support_message = 'پیام شما دریافت شد به زودی ادمین های ما پاسخ میدن !'
@@ -32,9 +31,12 @@ def success_transfer(text , status_code):
 err_inventory_increase = 'خطا لطفا دوباره تلاش کنید !'
 err_limit_amount = 'خطا مبلغ وارد شده معتبر نیست لطفا دوباره تلاش کنید !'
 
+
+
 def log_transfer(sender_username, receiver_username, amount, code):
     sender_link = f"tg://openmessage?user_id={sender_username}"
     receiver_link = f"tg://openmessage?user_id={receiver_username}"
+    now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
     text = f'''
 💸 انتقال موجودی 
 
@@ -42,6 +44,8 @@ def log_transfer(sender_username, receiver_username, amount, code):
 دریافت کننده : [ {receiver_username} ]({receiver_link})
 مقدار انتقالی : {amount}
 کد پیگیری : {code}
+
+⏰ {now_date_time}
 '''
     return text
 
@@ -81,6 +85,9 @@ def profile_data_text(user):
 
 
 
+user_is_auth = 'شما احراز هویت شدی :)'
+send_user_auth = f'لطفا مدارک خود را ارسال کنید :'
+
 
 
 
@@ -91,9 +98,12 @@ def payment_text(text):
 
 
 def success_transfer_text(amoutn ,user_wallet ):
+    now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
     text = f'''
 💸 واریز به حساب
 💰 مبلغ : {str(amoutn)}
 💰 موجودی : {str(user_wallet)}
+
+⏰ {now_date_time}
 '''
     return text
