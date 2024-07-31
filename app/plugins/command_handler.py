@@ -301,11 +301,16 @@ async def transitions_manager(bot, call):
         sender_id = transfer['sender_chat_id']
         receiver_id = transfer['receiver_chat_id']
         text.append(f"تاریخ: {shamsi_date}\nفرستنده: {sender_id}\nگیرنده: {receiver_id}\nمقدار: {transfer['amount']} تومان")
-    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(user = user , back=True))
-
+    
+    if text :
+        await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(user = user , back=True))
+    else :
+        await alert(bot , call , msg=txt.not_found)
 
 
 async def deposits_manager(bot, call):
+
+
     user = con.get_user(call.from_user.id)
     text = []
     user.payments.sort(key=lambda x: x['creation'], reverse=True)
@@ -315,7 +320,11 @@ async def deposits_manager(bot, call):
         shamsi_date = jdatetime.datetime.fromgregorian(datetime=creation_date).strftime('%Y/%m/%d %H:%M:%S')
         status_text = '✅ پرداخت موفق' if payment['status'] else '❌ پرداخت ناموفق'
         text.append(f"تاریخ: {shamsi_date}\n{status_text} | {payment['amount']} تومان")
-    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(user = user , back=True))
+    
+    if text :
+        await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text='\n\n'.join(text), reply_markup=btn.profile_data_btn(user = user , back=True))
+    else :
+        await alert(bot , call , msg=txt.not_found)
 
 
 

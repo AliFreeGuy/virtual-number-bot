@@ -49,7 +49,7 @@ def log_transfer(sender_username, receiver_username, amount, code):
 '''
     return text
 
-
+not_found = 'اینجا چیزی نیست :('
 
 
 
