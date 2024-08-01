@@ -5,6 +5,7 @@ from utils.connection import connection as con
 import requests
 from utils.utils import alert , deleter
 from utils.utils import join_checker
+from utils import utils
 import config
 import jdatetime
 from datetime import datetime
@@ -238,26 +239,31 @@ async def callback_manager(bot, call):
     elif status == 'send_auth_data' :
         await send_auth_data_manager(bot , call )
     
-    elif status== 'auth_user' :
-        await auth_user_manager(bot , call )
+    elif status == 'get_number_list' :
+        await get_number_list_manager(bot , call )
         
 
-
-
-async def auth_user_manager(bot , call ):
-    user = call.data.split(':')[2]
-    status = call.data.split(':')[1]
-
     
+
+
+
+async def get_number_list_manager(bot , call ):
+    setting = con.setting
+    token  = setting.callino_key
+    data  = utils.get_numbers(token)
+    if data :
+        file_path = "countries_info.txt"
+        with open(file_path, 'w', encoding='utf-8') as file:
+            for entry in data:
+                file.write(f"کشور: {entry['country']}  -  قیمت: {entry['price']}  -  رنج: {entry['range']}  -  وضعیت: {entry['count']}  -  ایموجی: {entry['emoji']}\n\n")
+        await bot.send_document(call.from_user.id , document = file_path)
 
 
 
 
 
 async def send_auth_data_manager(bot , call ):
-
     user= con.get_user(call.from_user.id)
-    
     if user.is_auth is False : 
         setting = con.setting
         user_auth = await bot.ask(chat_id = call.from_user.id , text = txt.send_user_auth , reply_to_message_id = call.message.id )
@@ -267,8 +273,6 @@ async def send_auth_data_manager(bot , call ):
     else :
         await alert(bot , call , txt.user_is_auth)
     
-
-
 
 
 

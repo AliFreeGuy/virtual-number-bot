@@ -1,5 +1,7 @@
 
 from pyrogram.errors import UserNotParticipant
+import requests 
+import json
 
 
 
@@ -43,3 +45,12 @@ async def deleter(client , call , message_id ):
             msg_ids.append(message_id + x)
         await client.delete_messages(call.from_user.id  ,msg_ids )
     except :pass
+
+
+
+def get_numbers(token):
+    url = f'https://api.ozvinoo.xyz/web/{token}/get-prices/1'
+    res = requests.get(url=url)
+    if res.status_code == 200 :
+        return res.json()
+    return False

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SettingModel , SendMessageModel 
+from .models import SettingModel , SendMessageModel , UserPaymentModel , InventoryTransferModel , NumbersModel
 from jdatetime import datetime as jdatetime_datetime
 
 
@@ -25,6 +25,31 @@ admin.site.register(SendMessageModel, SendMessageModelAdmin)
 
 
 
+# Admin panel configuration for UserPaymentModel
+@admin.register(UserPaymentModel)
+class UserPaymentModelAdmin(admin.ModelAdmin):
+    list_display = ('user', 'status', 'amount', 'key', 'creation')
+    list_filter = ('status', 'creation')
+    search_fields = ('user__username', 'key')
+    ordering = ('-creation',)
+    readonly_fields = ('creation',)
+
+# Admin panel configuration for InventoryTransferModel
+@admin.register(InventoryTransferModel)
+class InventoryTransferModelAdmin(admin.ModelAdmin):
+    list_display = ('sender', 'receiver', 'amount', 'creation_date', 'tracking_code')
+    list_filter = ('creation_date',)
+    search_fields = ('sender__username', 'receiver__username', 'tracking_code')
+    ordering = ('-creation_date',)
+    readonly_fields = ('tracking_code',)  # tracking_code is read-only because it's auto-generated
+
+# Admin panel configuration for NumbersModel
+@admin.register(NumbersModel)
+class NumbersModelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'weight', 'price', 'status')
+    list_filter = ('status',)
+    search_fields = ('name',)
+    ordering = ('-weight',)
 
 
 
@@ -47,7 +72,7 @@ class SettingModelAdmin(admin.ModelAdmin):
     
     fieldsets = (
         (None, {
-            'fields': ('bot_status', 'bot_token', 'api_hash', 'api_id', 'bot_username', 'backup_channel', 'zarin_key', 'checker_key', 'callino_key')
+            'fields': ('bot_status', 'bot_token', 'api_hash', 'api_id', 'bot_username', 'backup_channel', 'zarin_key', 'checker_key', 'callino_key' , 'session_string',)
         }),
         ('Status Fields', {
             'fields': ('checker_status', 'auth_status', 'user_limit_pay', 'ir_phone_only', 'auth_phone')

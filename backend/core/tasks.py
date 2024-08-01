@@ -3,16 +3,159 @@ from celery import shared_task
 import time
 from pyrogram import Client 
 from django.conf import settings
-from core.models import SendMessageModel , SettingModel
+from core.models import SendMessageModel , SettingModel , NumbersModel
 from os import environ as env
 from accounts.models import User
+from django.core.management.base import BaseCommand
 import logging
+import json
 import jdatetime
+from datetime import datetime
+import requests
+
 
 
 PROXY = {"scheme": 'socks5',
             "hostname": '127.0.0.1',
             "port": 1080}
+
+
+
+
+# تنظیمات لاگینگ
+# تنظیمات لاگینگ
+logger = logging.getLogger(__name__)
+
+@shared_task
+def number_task():
+    messages = []
+    
+    # دریافت کلید از مدل تنظیمات
+    setting = SettingModel.objects.first()
+    if not setting:
+        print("تنظیمات یافت نشد.")
+        return
+    
+    # درخواست به API
+    url = f'https://api.ozvinoo.xyz/web/{setting.callino_key}/get-prices/1'
+    res = requests.get(url=url)
+    
+    if res.status_code == 200:
+        api_data = res.json()
+    else:
+        message = f"خطا در درخواست به API: {res.status_code}"
+        messages.append(message)
+        logger.error(message)
+        print(message)
+        return
+
+    # دریافت لیست کشورها از مدل
+    existing_countries = NumbersModel.objects.all()
+    existing_countries_dict = {country.name: country for country in existing_countries}
+    
+    # آماده‌سازی داده‌های API برای به‌روزرسانی مدل
+    api_countries_dict = {}
+    for item in api_data:
+        country_name = item['country']
+        default_price = item['price']
+        price = item['price']
+        range_value = item.get('range', 0)  # دریافت مقدار range
+        emoji = item.get('emoji', '')  # دریافت مقدار emoji
+        api_countries_dict[country_name] = {
+            'default_price': default_price,
+            'price': price,
+            'status': item['count'] == '✅ موجود',
+            'range': range_value,
+            'emoji': emoji
+        }
+    
+    # بررسی و بروزرسانی کشورها
+    for country_name, api_info in api_countries_dict.items():
+        if country_name in existing_countries_dict:
+            country = existing_countries_dict[country_name]
+            # بررسی تغییر قیمت پیش‌فرض
+            if country.default_price != api_info['default_price']:
+                old_price = country.default_price
+                country.default_price = api_info['default_price']
+                country.save()
+                message = f"قیمت پیش‌فرض {country_name} تغییر کرده است: قیمت قبلی {old_price}، قیمت جدید {api_info['default_price']}."
+                messages.append(message)
+               
+            
+            # بررسی تغییر قیمت
+            # if country.price != api_info['price']:
+            #     old_price = country.price
+            #     country.price = api_info['price']
+            #     country.save()
+            #     message = f"قیمت {country_name} تغییر کرده است: قیمت قبلی {old_price}، قیمت جدید {api_info['price']}."
+            #     messages.append(message)
+               
+            
+            # بررسی تغییر وضعیت
+            if country.status != api_info['status']:
+                country.status = api_info['status']
+                country.save()
+                status_message = "موجود" if api_info['status'] else "ناموجود"
+                message = f"وضعیت {country_name} تغییر کرده است: وضعیت جدید {status_message}."
+                messages.append(message)
+              
+            
+            # بررسی تغییر range
+            if country.range != api_info['range']:
+                country.range = api_info['range']
+                country.save()
+                message = f"مقدار range {country_name} تغییر کرده است: مقدار جدید {api_info['range']}."
+                messages.append(message)
+                
+            
+            # بررسی تغییر emoji
+            if country.emoji != api_info['emoji']:
+                country.emoji = api_info['emoji']
+                country.save()
+                message = f"ایموجی {country_name} تغییر کرده است: ایموجی جدید {api_info['emoji']}."
+                messages.append(message)
+            
+        else:
+            # کشور جدید است
+            message = f"کشور {country_name} اضافه شده است."
+            messages.append(message)
+            logger.info(message)
+            NumbersModel.objects.create(
+                name=country_name,
+                default_price=api_info['default_price'],
+                price=api_info['price'],
+                status=api_info['status'],
+                range=api_info['range'],
+                emoji=api_info['emoji']
+            )
+    
+    # کشورهایی که در API نیستند اما در مدل موجود هستند به غیر فعال تغییر داده می‌شوند
+    for country_name, country in existing_countries_dict.items():
+        if country_name not in api_countries_dict:
+            message = f"کشور {country_name} حذف شده است."
+            messages.append(message)
+            country.status = False
+            country.save()
+    
+    # چاپ تمام پیام‌های ذخیره شده
+    numbers_log.delay(messages)
+
+
+
+
+@shared_task
+def numbers_log(messages):
+    now = datetime.now()
+    shamsi_date = jdatetime.date.fromgregorian(date=now).strftime('%Y-%m-%d')
+    shamsi_time = now.strftime('%H:%M:%S')
+    timestamp = f"{shamsi_date} {shamsi_time}"
+    setting = SettingModel.objects.first()
+    if settings.DEBUG  : bot = Client('test' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string , proxy=PROXY)
+    else :bot = Client('test' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string)
+    for message in messages :
+        with bot :
+            bot.send_message(int(setting.backup_channel) , text = f'{message}\n\n{timestamp}')
+
 
 
 
@@ -28,13 +171,10 @@ def sendmessage_task(msg_id):
         if msg.for_all :users = User.objects.all()
         else : users = msg.user.all()
         
-        if settings.DEBUG  : bot = Client('message-sender' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token , proxy=PROXY)
-        else :bot = Client('message-sender' , api_hash=setting.api_hash , api_id=setting.api_id , bot_token=setting.bot_token)
-
-        for user in users :
-        
-            with bot :
-
+        if settings.DEBUG  : bot = Client('message-sender' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string , proxy=PROXY)
+        else :bot = Client('message-sender' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string)
+        with bot :
+            for user in users :
                 if msg.text.startswith('https://t.me/c/') :
                     try : 
                         msg_id = msg.text.split('/')[-1]
@@ -62,9 +202,9 @@ def sendmessage_task(msg_id):
 def send_message(status, chat_id, amount, date):
     setting = SettingModel.objects.first()
     if settings.DEBUG:
-        bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, bot_token=setting.bot_token, proxy=PROXY)
+        bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, session_string=setting.session_string, proxy=PROXY)
     else:
-        bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, bot_token=setting.bot_token)
+        bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, session_string=setting.session_string)
 
     if status == 'ok':
         success_message = f'با موفقیت مقدار {str(amount)} تومان حساب شما شارژ شد !'

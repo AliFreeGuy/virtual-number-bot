@@ -108,6 +108,8 @@ def admin_panel_btn():
     buttons = []
     buttons.append([InlineKeyboardButton(text='ورود به ادمین پنل',url=config.ADMIN_PANEL),])
     buttons.append([InlineKeyboardButton(text='موجودی حساب کالینو',callback_data=f'callino_amount'),])
+    buttons.append([InlineKeyboardButton(text='دریافت آپدیت کشور ها',callback_data=f'get_number_list'),])
+
     return InlineKeyboardMarkup(buttons)
     
 def user_panel():

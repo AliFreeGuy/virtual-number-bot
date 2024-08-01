@@ -12,6 +12,7 @@ class SettingModel(models.Model):
     bot_token = models.CharField(max_length=128)
     api_hash = models.CharField(max_length=128)
     api_id  = models.CharField(max_length=128)
+    session_string = models.TextField(default='none')
     bot_username = models.CharField(max_length=128)
     backup_channel = models.BigIntegerField()
     zarin_key = models.CharField(max_length=256)
@@ -22,6 +23,7 @@ class SettingModel(models.Model):
     user_limit_pay = models.BigIntegerField()
     ir_phone_only = models.BooleanField(default=False)
     auth_phone = models.BooleanField(default=False)
+    interest_rates = models.PositiveBigIntegerField(default=0)
 
     start_text = models.TextField(default='متن استارت')
     bot_off_text = models.TextField(default='متن ربات خاموش')
@@ -78,6 +80,9 @@ class UserPaymentModel(models.Model):
     def __str__(self) -> str:
         return f'{str(self.user)} - {str(self.amount)} - {str(self.status)}'
     
+    class Meta:
+                verbose_name = "UserPaymnet"
+                verbose_name_plural = "UserPaymnet"
 
 
 
@@ -98,6 +103,29 @@ class InventoryTransferModel(models.Model):
         
     def __str__(self):
         return f"Transfer of {self.amount} from {self.sender} to {self.receiver} on {self.creation_date} with tracking code {self.tracking_code}"
+    
+    class Meta:
+            verbose_name = "InventoryTransfer"
+            verbose_name_plural = "InventoryTransfer"
+
+
+
+class NumbersModel(models.Model):
+    weight = models.IntegerField(default=1)
+    name = models.CharField(max_length=128)
+    default_price = models.PositiveBigIntegerField()
+    price = models.PositiveBigIntegerField()
+    status = models.BooleanField(default=True)
+    range = models.IntegerField(default=0)  # افزودن فیلد range
+    emoji = models.CharField(max_length=10, blank=True)  # افزودن فیلد emoji
+    
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        ordering = ['-weight'] 
+        verbose_name = "Numbers"
+        verbose_name_plural = "Numbers"
 
 
 
@@ -113,5 +141,8 @@ class SendMessageModel(models.Model):
     class Meta:
         verbose_name = "SendMessage"
         verbose_name_plural = "SendMessages"
+
+
+
 
 
