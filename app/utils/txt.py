@@ -8,6 +8,22 @@ recaved_support_message = 'پیام شما دریافت شد به زودی اد�
 admin_message = 'پاسخ خود را ارسال کنید . درصورت منصرف شدن بر روی /cancel بزنید'
 admin_message_cancel = 'با موفقیت کنسل شد !'
 admin_message_sended = 'با موفقیت پیام شما ارسال شد !'
+timedout_get_code = 'زمان دریافت کد گذشته است.'
+
+
+
+def send_number_to_user_text(number_data , admin_text ):
+
+    text = f'''
+کشور : `{number_data['countery']}`
+قیمت : `{number_data['price']}`
+شماره : `{number_data['number']}`
+
+{admin_text}
+
+'''
+    return text
+
 
 
 
@@ -34,14 +50,16 @@ err_limit_amount = 'خطا مبلغ وارد شده معتبر نیست لطفا
 
 
 def log_transfer(sender_username, receiver_username, amount, code):
-    sender_link = f"tg://openmessage?user_id={sender_username}"
-    receiver_link = f"tg://openmessage?user_id={receiver_username}"
+    sender_link = f"tg://openmessage?user_id={sender_username.chat_id}"
+    receiver_link = f"tg://openmessage?user_id={receiver_username.chat_id}"
     now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
     text = f'''
 💸 انتقال موجودی 
 
-ارسال کننده : [ {sender_username} ]({sender_link})
-دریافت کننده : [ {receiver_username} ]({receiver_link})
+ارسال کننده : [ {sender_username.chat_id} ]({sender_link})
+موجودی ارسال کننده : {sender_username.wallet}
+دریافت کننده : [ {receiver_username.chat_id} ]({receiver_link})
+موجودی دریافت کننده : {receiver_username.wallet}
 مقدار انتقالی : {amount}
 کد پیگیری : {code}
 
@@ -51,8 +69,7 @@ def log_transfer(sender_username, receiver_username, amount, code):
 
 not_found = 'اینجا چیزی نیست :('
 
-
-
+number_not_found = 'موجودی این کشور به اتمام رسیده !'
 
 
 def profile_data_text(user):

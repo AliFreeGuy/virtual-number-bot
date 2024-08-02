@@ -8,7 +8,7 @@ from utils.utils import join_checker
 from utils import utils
 import config
 import jdatetime
-from datetime import datetime
+from datetime import datetime , timedelta
 
 @Client.on_message(f.updater &f.bot_is_on & f.user_is_active & f.user_is_join, group=2)
 async def command_manager(bot, msg):
@@ -50,17 +50,28 @@ async def command_manager(bot, msg):
         elif msg.text in ['/profile' , 'حساب کاربری']:
             await profile_manager(bot , msg )
         
+        elif msg.text in ['خرید شماره مجازی' , ]:
+            await buy_number_manager(bot , msg )
 
     elif msg.contact :
         setting = con.setting
         user_phone = str(msg.contact.phone_number)
         user = con.update_phone(chat_id=msg.from_user.id , phone=user_phone)
-        if user == 200 :
-            await bot.send_message(msg.from_user.id , text = setting.inventory_increase_text , reply_markup = btn.inventory_increase_btn())
+        # if user == 200 :
+        #     await bot.send_message(msg.from_user.id , text = setting.inventory_increase_text , reply_markup = btn.inventory_increase_btn())
 
 
         
 
+
+async def  buy_number_manager(bot , msg ):
+    setting = con.setting
+    numbers = setting.numbers
+    user = con.get_user(msg.from_user.id)
+    if numbers and setting.number_rows != 0 :
+        await bot.send_message(msg.from_user.id , text = setting.buy_number_text , reply_markup = btn.numbers_list_btn())
+        if setting.auth_phone and user.phone == 'none' :
+                await bot.send_message(msg.from_user.id , text = setting.auth_phone_text , reply_markup = btn.get_user_contact())
 
 
 
@@ -241,9 +252,124 @@ async def callback_manager(bot, call):
     
     elif status == 'get_number_list' :
         await get_number_list_manager(bot , call )
-        
-
     
+    elif status == 'get_sesstion_string' :
+        await get_sesstion_string(bot , call )
+        
+    elif status.startswith('change_page') :
+        await change_page_numbers(bot , call )
+
+    elif status == 'get_number' :
+        await get_number_manager(bot , call )
+    
+    elif status.startswith('get_code'):
+        await get_code_manager(bot , call )
+
+
+
+
+
+async def get_number_manager(bot, call):
+    user = con.get_user(call.from_user.id)  # دریافت اطلاعات کاربر
+    setting = con.setting
+    validates = []
+
+    if setting.auth_status and not user.is_auth:
+        validates.append(setting.auth_text)
+    
+    if setting.auth_phone and user.phone == 'none':
+        validates.append(setting.auth_phone_text)
+
+    if setting.ir_phone_only and not (user.phone.startswith('+98') or user.phone.startswith('98')):
+        validates.append(setting.ir_phone_only_text)
+
+    if validates:
+        await alert(bot, call, msg=validates[0])
+    else:
+        setting = con.setting
+        numbers = setting.numbers
+        number_id = int(call.data.split(':')[1])
+        for number in numbers:
+            if int(number['id']) == number_id:
+                if int(user.wallet) >= int(number['price']):
+                    await buy_number(bot = bot , call = call , number=number , user = user , setting = setting)
+                else :
+                    await alert(bot , call ,setting.user_no_inventory )
+        
+    
+
+
+
+
+async def buy_number(bot, call, number, user, setting):
+    phone_number = utils.get_phone_number(token=setting.callino_key, contry=number['name'])
+    if phone_number.get('success') is None:
+        phone_number['price'] = number['price']
+        phone_number['id'] = number['id']
+        phone_number['timestamp'] = datetime.now().timestamp()  # ذخیره زمان جاری به صورت timestamp
+        cache.redis.hmset(f'number:{phone_number["request_id"]}', phone_number)
+        await bot.edit_message_text(
+            chat_id=call.from_user.id,
+            text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
+            message_id=call.message.id,
+            reply_markup=btn.get_code_menu(phone_number['request_id'])
+        )
+    else:
+        await alert(bot, call, msg=txt.number_not_found)
+
+
+
+
+
+async def get_code_manager(bot, call):
+    status = call.data.split(':')[1]
+    request_id = call.data.split(':')[2]
+    phone_data = cache.redis.hgetall(f'number:{request_id}')
+    user = con.get_user(call.from_user.id)
+    setting = con.setting
+
+    if status == 'cancel':
+        setting = con.setting
+        numbers = setting.numbers
+        if numbers and setting.number_rows != 0:
+            await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text=setting.buy_number_text, reply_markup=btn.numbers_list_btn())
+            if setting.auth_phone and user.phone == 'none':
+                await bot.send_message(chat_id=call.from_user.id, text=setting.auth_phone_text, reply_markup=btn.get_user_contact())
+
+    elif status == 'quality':
+        await alert(bot, call, msg=phone_data['quality'])
+
+    elif status == 'getcode':
+        timestamp = float(phone_data.get('timestamp', 0))
+        if datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
+            await alert(bot, call, msg = txt.timedout_get_code)
+        else:
+            code = utils.get_code(token=setting.callino_key, request_id=request_id)
+            if code:
+                await bot.send_message(call.from_user.id, text=str(code))
+            else :
+                await bot.send_message(call.from_user.id, text='not code')
+
+
+
+
+
+
+async def change_page_numbers(bot , call ):
+    data = call.data
+    if data.startswith('change_page:'):
+        current_page = int(data.split(':')[1])
+        markup = btn.numbers_list_btn(current_page=current_page)
+        await call.message.edit_reply_markup(reply_markup=markup)
+
+
+
+
+async def get_sesstion_string(bot , call ):
+    sesstion =await bot.export_session_string()
+    await bot.send_message(call.from_user.id , text = sesstion)
+
+
 
 
 
@@ -257,6 +383,8 @@ async def get_number_list_manager(bot , call ):
             for entry in data:
                 file.write(f"کشور: {entry['country']}  -  قیمت: {entry['price']}  -  رنج: {entry['range']}  -  وضعیت: {entry['count']}  -  ایموجی: {entry['emoji']}\n\n")
         await bot.send_document(call.from_user.id , document = file_path)
+
+
 
 
 
@@ -370,13 +498,6 @@ async def inventory_increase_manager(bot , call):
                                                 )
             
             else :await alert(bot , call ,msg=txt.err_limit_amount)
-
-
-
-
-
-
-
         else : await alert(bot , call , msg=txt.err_inventory_increase)
         await deleter(bot , call , call.message.id +1 )
     else :await alert(bot , call , msg=validates[0])
@@ -396,6 +517,8 @@ async def inventory_transfer_call(bot , call ):
     data = call.data.split(':')[1]
     sender = int(data.split('_')[0])
     receiver = int(data.split('_')[1])
+    recever_user = con.get_user(receiver)
+    sender_user = con.get_user(sender)
     amount = int(data.split('_')[2])
     data = con.transfer(sender , receiver , amount)
     if data['status'] == 200 :
@@ -404,7 +527,7 @@ async def inventory_transfer_call(bot , call ):
                                     message_id = call.message.id
                                     )
         
-        await bot.send_message(chat_id = setting.backup_channel , text = txt.log_transfer(sender , receiver  , amount , data['code']))
+        await bot.send_message(chat_id = setting.backup_channel , text = txt.log_transfer(recever_user , sender_user  , amount , data['code'] ))
         user_wallet = con.get_user(int(receiver))
         await bot.send_message(chat_id = int(receiver) , text = txt.success_transfer_text(amount , user_wallet.wallet))
 

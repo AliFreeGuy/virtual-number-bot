@@ -201,6 +201,7 @@ def sendmessage_task(msg_id):
 @shared_task
 def send_message(status, chat_id, amount, date):
     setting = SettingModel.objects.first()
+    user = User.objects.get(chat_id =chat_id)
     if settings.DEBUG:
         bot = Client('send_message', api_hash=setting.api_hash, api_id=setting.api_id, session_string=setting.session_string, proxy=PROXY)
     else:
@@ -219,6 +220,7 @@ def send_message(status, chat_id, amount, date):
 کاربر : [ {str(chat_id)} ]({chat_link})
 مقدار شارژ : {amount}
 تاریخ : {creation_date_jalali}
+موجودی : {str(user.wallet)}
 '''
 
         with bot:

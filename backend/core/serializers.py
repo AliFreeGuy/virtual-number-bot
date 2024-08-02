@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SettingModel  , InventoryTransferModel , UserPaymentModel
+from .models import SettingModel  , InventoryTransferModel , UserPaymentModel  , NumbersModel
 from accounts.models import User
 
 
@@ -10,15 +10,32 @@ from accounts.models import User
 
 class SettingSerializer(serializers.ModelSerializer):
     channels = serializers.SerializerMethodField()
+    numbers = serializers.SerializerMethodField()
 
     def get_channels(self, obj):
         channels = [obj.channel_1, obj.channel_2, obj.channel_3, obj.channel_4, obj.channel_5]
         channels = [channel for channel in channels if channel]
         return channels
 
+    def get_numbers(self, obj):
+        interest_rate = obj.interest_rates / 100  # تبدیل درصد به عدد اعشاری
+        numbers = NumbersModel.objects.all()
+        for number in numbers:
+            number.price += number.price * interest_rate  # محاسبه قیمت جدید با درصد تنظیمات
+        serializer = NumbersSerializer(numbers, many=True)
+        return serializer.data
+
     class Meta:
         model = SettingModel
         fields = '__all__'
+
+
+
+
+class NumbersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NumbersModel
+        fields = ['id','weight', 'name', 'default_price', 'price', 'status', 'range', 'emoji']
 
 
 
@@ -28,6 +45,8 @@ class UserPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPaymentModel
         fields = '__all__'
+
+
 
 class InventoryTransferSerializer(serializers.ModelSerializer):
     sender_chat_id = serializers.SerializerMethodField()
@@ -61,23 +80,3 @@ class UserSerializer(serializers.ModelSerializer):
         all_transfers = sent_transfers.union(received_transfers).order_by('-creation_date')
         return InventoryTransferSerializer(all_transfers, many=True).data
 
-
-# class UserPlanSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserPlanModel
-#         fields = '__all__'
-
-
-
-
-# class UserSerializer(serializers.ModelSerializer):
-#     sub = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = User
-#         fields = '__all__'
-
-#     def get_sub(self, obj):
-#         user_subs = obj.plans.filter(is_active = True).first()
-#         serializer = UserPlanSerializer(user_subs)
-#         return serializer.data

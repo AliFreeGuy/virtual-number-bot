@@ -8,6 +8,11 @@ import random
 
 class SettingModel(models.Model):
 
+    STATUS_CHOICES = [
+        ('active', 'فعال ها'),
+        ('inactive', 'غیر فعال ها'),
+        ('all', 'همه'),
+    ]
     bot_status = models.BooleanField(default=True)
     bot_token = models.CharField(max_length=128)
     api_hash = models.CharField(max_length=128)
@@ -24,6 +29,13 @@ class SettingModel(models.Model):
     ir_phone_only = models.BooleanField(default=False)
     auth_phone = models.BooleanField(default=False)
     interest_rates = models.PositiveBigIntegerField(default=0)
+    number_rows = models.PositiveBigIntegerField(default=10)
+    number_timeout = models.PositiveIntegerField(default=5)
+    show_numbers = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='all',
+    )
 
     start_text = models.TextField(default='متن استارت')
     bot_off_text = models.TextField(default='متن ربات خاموش')
@@ -46,6 +58,9 @@ class SettingModel(models.Model):
     inventory_transfer_error_text = models.TextField(default='متن خطایه انتقال موجودی')
     inventory_transfer_amount_text = models.TextField(default='متن مقدار انتقال موجودی')
     payment_description = models.TextField(default='متن صفحه درگاه پرداخت')
+    buy_number_text = models.TextField(default='متن خرید شماره مجازی')
+    send_number_to_user_text = models.TextField(default='متن هنگام ارسال شماره به کاربر ')
+    user_no_inventory = models.TextField(default='متن کاربر موجودی ندارد !')
 
 
 

@@ -54,3 +54,30 @@ def get_numbers(token):
     if res.status_code == 200 :
         return res.json()
     return False
+
+
+def get_phone_number(token , contry ):
+    url = f'https://api.ozvinoo.xyz/web/{token}/getNumber/1/{contry}'
+    res = requests.get(url)
+    if res.status_code == 200 :
+        return res.json()
+    else :
+        return False
+    
+
+def get_code(token, request_id):
+    # url = f'https://api.ozvinoo.xyz/web/{token}/getCode/{str(request_id)}'
+    # try:
+    #     res = requests.get(url)
+    #     res.raise_for_status()
+    # except requests.exceptions.RequestException as e:
+    #     print(f"HTTP Request failed: {e}")
+    #     return False
+    # data = res.json()
+    # if 'code' in data:
+    #     return data['code']
+    # else:
+    #     print(f"Error: {data.get('error_msg', 'Unknown error')}")
+    #     return False
+    return False
+

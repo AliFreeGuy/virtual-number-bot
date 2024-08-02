@@ -1,6 +1,8 @@
 from pyrogram.types import (ReplyKeyboardMarkup, InlineKeyboardMarkup,InlineKeyboardButton , KeyboardButton , WebAppInfo)
 import config
 import jdatetime
+from utils.connection import connection  as con
+
 
 
 
@@ -109,6 +111,7 @@ def admin_panel_btn():
     buttons.append([InlineKeyboardButton(text='ورود به ادمین پنل',url=config.ADMIN_PANEL),])
     buttons.append([InlineKeyboardButton(text='موجودی حساب کالینو',callback_data=f'callino_amount'),])
     buttons.append([InlineKeyboardButton(text='دریافت آپدیت کشور ها',callback_data=f'get_number_list'),])
+    buttons.append([InlineKeyboardButton(text='دریافت سشن استرینگ',callback_data=f'get_sesstion_string'),])
 
     return InlineKeyboardMarkup(buttons)
     
@@ -140,12 +143,73 @@ def support_btn(msg_id , chat_id , url  , user_name):
 
 
 
+def get_code_menu(request_id):
+
+    buttons = []
+    buttons.append([
+        InlineKeyboardButton(text='بررسی کیفیت',callback_data=f'get_code:quality:{request_id}'),
+        ])
+    
+    buttons.append([
+        InlineKeyboardButton(text='کنسل',callback_data=f'get_code:cancel:{request_id}'),
+        InlineKeyboardButton(text='دریافت کد',callback_data=f'get_code:getcode:{request_id}'),
+        
+        ])
+    return InlineKeyboardMarkup(buttons)
 
 
 
 
 
 
+
+
+
+
+
+
+
+def numbers_list_btn(current_page=1):
+    setting = con.setting
+    buttons = []
+    buttons.append([
+        InlineKeyboardButton(text='🌎 نام کشور', callback_data='note'),
+        InlineKeyboardButton(text='📊 وضعیت', callback_data='note'),
+        InlineKeyboardButton(text='💰 قیمت', callback_data='note'),
+    ])
+
+    # Filter numbers based on the show_numbers setting
+    if setting.show_numbers == 'active':
+        filtered_numbers = [number for number in setting.numbers if number['status']]
+    elif setting.show_numbers == 'inactive':
+        filtered_numbers = [number for number in setting.numbers if not number['status']]
+    else:  # 'all'
+        filtered_numbers = setting.numbers
+
+    # Calculate the start and end indices for the current page
+    start_index = (current_page - 1) * setting.number_rows
+    end_index = start_index + setting.number_rows
+    paginated_numbers = filtered_numbers[start_index:end_index]
+
+    for number in paginated_numbers:
+        status_text = '✅ موجود' if number['status'] else '❌ ناموجود'
+        buttons.append([
+            InlineKeyboardButton(text=number["name"], callback_data=f'get_number:{number["id"]}'),
+            InlineKeyboardButton(text=status_text, callback_data=f'get_number:{number["id"]}'),
+            InlineKeyboardButton(text=number['price'], callback_data=f'get_number:{number["id"]}'),
+        ])
+
+    # Add navigation buttons if necessary
+    navigation_buttons = []
+    if current_page > 1:
+        navigation_buttons.append(InlineKeyboardButton(text='صفحه قبل', callback_data=f'change_page:{current_page - 1}'))
+    if end_index < len(filtered_numbers):
+        navigation_buttons.append(InlineKeyboardButton(text='صفحه بعد', callback_data=f'change_page:{current_page + 1}'))
+
+    if navigation_buttons:
+        buttons.append(navigation_buttons)
+
+    return InlineKeyboardMarkup(buttons)
 
 
 
