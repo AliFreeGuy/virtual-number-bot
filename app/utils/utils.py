@@ -79,5 +79,5 @@ def get_code(token, request_id):
     # else:
     #     print(f"Error: {data.get('error_msg', 'Unknown error')}")
     #     return False
-    return False
+    return True
 

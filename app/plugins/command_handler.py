@@ -265,6 +265,9 @@ async def callback_manager(bot, call):
     elif status.startswith('get_code'):
         await get_code_manager(bot , call )
 
+    elif status == 'orders':
+        await orders_manager(bot, call )
+
 
 
 
@@ -346,11 +349,21 @@ async def get_code_manager(bot, call):
         else:
             code = utils.get_code(token=setting.callino_key, request_id=request_id)
             if code:
-                await bot.send_message(call.from_user.id, text=str(code))
-            else :
-                await bot.send_message(call.from_user.id, text='not code')
-
-
+                data = con.add_order(
+                            chat_id=user.chat_id ,
+                            price=phone_data['price'] ,
+                            country_id=phone_data['id'] ,
+                            number=phone_data['number'],
+                            request_id=phone_data['request_id'])
+                await bot.send_message(call.from_user.id, text=txt.get_code(code))
+                await alert(bot , call , msg=txt.get_code(code))
+                if data :
+                    await bot.send_message(setting.backup_channel , text = txt.backup_buy_number(user.chat_id ,
+                                                                                                phone_data['number'] , 
+                                                                                                phone_data['countery'] , 
+                                                                                                phone_data['price'] ,
+                                                                                                user.wallet))
+            
 
 
 
@@ -421,6 +434,34 @@ async def back_profile_manager(bot , call ):
 
 
 
+async def orders_manager(bot, call):
+    user = con.get_user(call.from_user.id)
+    orders = user.orders
+    
+    if not orders:
+        await alert(bot, call, msg=txt.not_found)
+        return
+
+    orders.sort(key=lambda x: x['creation'], reverse=True)
+    recent_orders = orders[:5][::-1]
+    text = []
+    for order in recent_orders:
+        creation_date = datetime.strptime(order['creation'][:19], '%Y-%m-%dT%H:%M:%S')
+        shamsi_date = jdatetime.datetime.fromgregorian(datetime=creation_date).strftime('%Y/%m/%d %H:%M:%S')
+        text.append(f"تاریخ: {shamsi_date}\nشماره: {order['number']}\nقیمت: {order['price']} تومان")
+    
+    if text:
+        await bot.edit_message_text(
+            chat_id=call.from_user.id,
+            message_id=call.message.id,
+            text='\n\n'.join(text),
+            reply_markup=btn.profile_data_btn(user=user, back=True)
+        )
+    else:
+        await alert(bot, call, msg=txt.not_found)
+
+
+
 async def transitions_manager(bot, call):
     user = con.get_user(call.from_user.id)
     print(user.transfers)  # این خط برای دیباگ نگه داشته شده است
@@ -441,8 +482,6 @@ async def transitions_manager(bot, call):
 
 
 async def deposits_manager(bot, call):
-
-
     user = con.get_user(call.from_user.id)
     text = []
     user.payments.sort(key=lambda x: x['creation'], reverse=True)

@@ -161,3 +161,14 @@ class SendMessageModel(models.Model):
 
 
 
+class UserOrdersModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    country = models.ForeignKey(NumbersModel, on_delete=models.CASCADE, related_name='orders')
+    number = models.CharField(max_length=55)
+    price = models.PositiveIntegerField()
+    request_id = models.PositiveIntegerField(default=0  , unique=True)
+    creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Order"
+        verbose_name_plural = "Orders"

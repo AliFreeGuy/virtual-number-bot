@@ -9,7 +9,7 @@ urlpatterns = [
     path('api/setting/', views.SettingAPIView.as_view() , name='setting'),
     path('api/transfer/' , views.InventoryTransferAPIView.as_view() , name='transfer'),
     path('api/update_phone/' , views.UpdatePhoneUserAPIView.as_view() , name = 'update_phone'),
-
+    path('api/add_order/' , views.UserOrderAPIView.as_view() , name='add_order'),
     path('api/request/', views.PaymentView.as_view(), name='request'),
     path('verify/', views.verify , name='verify'),
 

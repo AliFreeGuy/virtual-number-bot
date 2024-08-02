@@ -124,3 +124,33 @@ def success_transfer_text(amoutn ,user_wallet ):
 ⏰ {now_date_time}
 '''
     return text
+
+
+
+
+
+def backup_buy_number(chat_id , number , country  , price   , wallet ):
+
+    now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
+
+    text = f'''
+💰خرید موفق
+
+توسط کاربر : {chat_id}
+شماره : {number}
+کشور : {country}
+قیمت : {price}
+موجودی کاربر : {wallet}
+
+
+⏰ {now_date_time}'''
+    
+    return text
+
+
+
+
+def get_code(code ):
+
+    text = f'کد شما : {str(code)}'
+    return text

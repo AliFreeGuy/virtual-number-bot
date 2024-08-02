@@ -88,7 +88,29 @@ class Connection:
         if res.status_code == 200 :response['code'] = res.json()['tracking_code']
         else :response['code'] = 0
         return response
+
     
+
+    def add_order(self, chat_id, country_id, number, price, request_id):
+        pattern = 'add_order'
+        url = self.link_generator(pattern)
+        data = {
+            'chat_id': chat_id,
+            'country_id': country_id,
+            'number': number,
+            'price': price,
+            'request_id': request_id
+        }
+        try:
+            res = requests.post(url=url, json=data, headers=self.headers)
+            if res.status_code == 200:
+                return True
+            else:
+                return False
+        except requests.RequestException as e:
+            return False
+
+        
 
     def update_phone(self , chat_id , phone):
          pattern = 'update_phone'
@@ -104,6 +126,7 @@ class Connection:
             res = self.post(url , chat_id )
             if res and res.status_code == 200 :
                 res = Response(res.json())
+                
                 return res
             return None  
         

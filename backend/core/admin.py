@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SettingModel , SendMessageModel , UserPaymentModel , InventoryTransferModel , NumbersModel
+from .models import SettingModel , SendMessageModel , UserPaymentModel , InventoryTransferModel , NumbersModel  , UserOrdersModel
 from jdatetime import datetime as jdatetime_datetime
 
 
@@ -53,7 +53,16 @@ class NumbersModelAdmin(admin.ModelAdmin):
 
 
 
+class UserOrdersModelAdmin(admin.ModelAdmin):
+    list_display = ('user', 'country', 'number', 'price', 'request_id', 'creation')
+    list_filter = ('country', 'creation')
+    search_fields = ('user__chat_id','user__full_name', 'number', 'request_id')
+    ordering = ('-creation',)
 
+    # Add any custom configurations if needed
+    # For example, readonly fields, inlines, etc.
+
+admin.site.register(UserOrdersModel, UserOrdersModelAdmin)
 
 
 

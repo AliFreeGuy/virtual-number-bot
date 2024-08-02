@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SettingModel  , InventoryTransferModel , UserPaymentModel  , NumbersModel
+from .models import SettingModel  , InventoryTransferModel , UserPaymentModel  , NumbersModel , UserOrdersModel
 from accounts.models import User
 
 
@@ -62,9 +62,18 @@ class InventoryTransferSerializer(serializers.ModelSerializer):
     def get_receiver_chat_id(self, obj):
         return obj.receiver.chat_id
 
+
+
+class UserOrdersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserOrdersModel
+        fields = '__all__'
+
+
 class UserSerializer(serializers.ModelSerializer):
     payments = serializers.SerializerMethodField()
     transfers = serializers.SerializerMethodField()
+    orders = serializers.SerializerMethodField()  # فیلد سفارشی برای سفارش‌ها
 
     class Meta:
         model = User
@@ -79,4 +88,8 @@ class UserSerializer(serializers.ModelSerializer):
         received_transfers = InventoryTransferModel.objects.filter(receiver=obj)
         all_transfers = sent_transfers.union(received_transfers).order_by('-creation_date')
         return InventoryTransferSerializer(all_transfers, many=True).data
+
+    def get_orders(self, obj):
+        orders = UserOrdersModel.objects.filter(user=obj)
+        return UserOrdersSerializer(orders, many=True).data
 

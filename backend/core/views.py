@@ -168,11 +168,49 @@ class SettingAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+from django.http import JsonResponse
+from rest_framework.views import APIView
+from . import models  # مطمئن شوید مدل‌ها را به درستی وارد کرده‌اید
 
+class UserOrderAPIView(APIView):
 
+    def post(self, request):
+        chat_id = request.data.get('chat_id')
+        country_id = request.data.get('country_id')
+        number = request.data.get('number')
+        price = request.data.get('price')
+        request_id = request.data.get('request_id')
 
+        # یافتن کاربر بر اساس chat_id
+        try:
+            user = models.User.objects.get(chat_id=chat_id)
+        except models.User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 
+        # یافتن کشور بر اساس country_id
+        try:
+            country = models.NumbersModel.objects.get(id=country_id)
+        except models.NumbersModel.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Country not found'}, status=404)
 
+        try:
+            price = int(price)  # تبدیل قیمت به عدد صحیح
+        except ValueError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid price'}, status=400)
+
+        # بررسی یونیک بودن request_id
+        if models.UserOrdersModel.objects.filter(request_id=request_id).exists():
+            return JsonResponse({'status': 'error', 'message': 'Order already exists'}, status=400)
+
+        if user.wallet < price:
+            return JsonResponse({'status': 'error', 'message': 'Insufficient funds'}, status=400)
+
+        user.wallet -= price
+        user.save()
+
+        # ایجاد سفارش
+        models.UserOrdersModel.objects.create(user=user, request_id=request_id, country=country, price=price, number=number)
+        return JsonResponse({'status': 'ok'})
 
 
 
