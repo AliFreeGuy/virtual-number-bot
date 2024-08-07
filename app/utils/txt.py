@@ -56,10 +56,10 @@ def log_transfer(sender_username, receiver_username, amount, code):
     text = f'''
 💸 انتقال موجودی 
 
-ارسال کننده : [ {sender_username.chat_id} ]({sender_link})
-موجودی ارسال کننده : {sender_username.wallet}
-دریافت کننده : [ {receiver_username.chat_id} ]({receiver_link})
-موجودی دریافت کننده : {receiver_username.wallet}
+دریفات  کننده : [ {sender_username.chat_id} ]({sender_link})
+موجودی دریفات کننده : {sender_username.wallet}
+ارسال کننده : [ {receiver_username.chat_id} ]({receiver_link})
+موجودی ارسال کننده : {receiver_username.wallet}
 مقدار انتقالی : {amount}
 کد پیگیری : {code}
 
@@ -92,7 +92,7 @@ def profile_data_text(user):
 👤 شناسه کاربری : `{str(user_data['chat_id'])}`
 📆 تاریخ عضویت : `{formatted_date_creation}`
 💰 موجودی حساب : `{user_data['wallet']} تومان`
-🛍 تعداد سفارشات : `{orders} سفارش`
+🛍 تعداد سفارشات : `{str(len(user.orders))} سفارش`
 💳 مجموع واریزی‌ها : `{total_payments_amount} تومان`
 💸 مجموع انتقالی‌ها : `{total_transfers_count} انتقال`
 
