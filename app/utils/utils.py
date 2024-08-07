@@ -67,16 +67,59 @@ def get_phone_number(token , contry ):
 
 def get_code(token, request_id):
     url = f'https://api.ozvinoo.xyz/web/{token}/getCode/{str(request_id)}'
+    # try:
+    #     res = requests.get(url)
+    #     res.raise_for_status()
+    # except requests.exceptions.RequestException as e:
+    #     print(f"HTTP Request failed: {e}")
+    #     return False
+    # data = res.json()
+    # if 'code' in data:
+    #     return data['code']
+    # else:
+    #     print(f"Error: {data.get('error_msg', 'Unknown error')}")
+    #     return False
+
+    return True
+
+
+
+
+
+
+def checker(numbers, api_key):
+    url = "http://ca.irbots.com"
+    phone_numbers = ','.join(numbers)
+    
+    params = {
+        "key": api_key,
+        "numbers": phone_numbers,
+        'target': 'checker'  # انتخاب چکر
+    }
+    
+    # ارسال درخواست GET
     try:
-        res = requests.get(url)
-        res.raise_for_status()
+        response = requests.get(url, params=params, timeout=15)
+    except Exception as e:
+        print(f'API error: {e}')
+        return []
+    
+    try:
+        # تلاش برای تجزیه پاسخ به فرمت JSON
+        response_json = response.json()
+        print(f"Response JSON: {response_json}")  # چاپ پاسخ دریافتی برای بررسی
+        
+        # تبدیل پاسخ به لیست مورد نظر
+        results = []
+        if response_json['status'] == 'ok':
+            for phone, status in response_json['data'].items():
+                results.append({'phone': phone, 'status': status})
+        return results
+    except requests.exceptions.JSONDecodeError:
+        print('Error: Invalid JSON response')
+        print(response.text)
+        return []
     except requests.exceptions.RequestException as e:
-        print(f"HTTP Request failed: {e}")
-        return False
-    data = res.json()
-    if 'code' in data:
-        return data['code']
-    else:
-        print(f"Error: {data.get('error_msg', 'Unknown error')}")
-        return False
+        print(f'Error: {e}')
+        return []
 

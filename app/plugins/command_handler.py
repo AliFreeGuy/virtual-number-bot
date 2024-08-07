@@ -306,6 +306,7 @@ async def get_number_manager(bot, call):
 
 async def buy_number(bot, call, number, user, setting):
     phone_number = utils.get_phone_number(token=setting.callino_key, contry=number['name'])
+    setting = con.setting
     if phone_number.get('success') is None:
         phone_number['price'] = number['price']
         phone_number['id'] = number['id']
@@ -315,7 +316,7 @@ async def buy_number(bot, call, number, user, setting):
             chat_id=call.from_user.id,
             text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
             message_id=call.message.id,
-            reply_markup=btn.get_code_menu(phone_number['request_id'])
+            reply_markup=btn.get_code_menu(phone_number['request_id']  , setting)
         )
     else:
         await alert(bot, call, msg=txt.number_not_found)
@@ -331,6 +332,7 @@ async def get_code_manager(bot, call):
     user = con.get_user(call.from_user.id)
     setting = con.setting
 
+
     if status == 'cancel':
         setting = con.setting
         numbers = setting.numbers
@@ -341,6 +343,22 @@ async def get_code_manager(bot, call):
 
     elif status == 'quality':
         await alert(bot, call, msg=phone_data['quality'])
+
+    elif status == 'checker' :
+        if setting.checker_status :
+            timestamp = float(phone_data.get('timestamp', 0))
+            if datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
+                await alert(bot, call, msg = txt.timedout_get_code)
+            else :
+                number_checker = utils.checker(api_key=setting.checker_key , numbers=[phone_data['number']])
+                if number_checker :
+                    status = number_checker[0]['status']
+                    if status in ['session' , 'True']:await alert(bot , call , msg=txt.healthy_number)
+                    else : await alert(bot , call , msg=txt.broken_number)
+                else :await alert(bot , call , msg=txt.broken_number)
+                    
+
+
 
     elif status == 'getcode':
         timestamp = float(phone_data.get('timestamp', 0))

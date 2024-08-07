@@ -143,12 +143,17 @@ def support_btn(msg_id , chat_id , url  , user_name):
 
 
 
-def get_code_menu(request_id):
-
+def get_code_menu(request_id , setting ):
+    
     buttons = []
-    buttons.append([
+
+    one_list  = [
         InlineKeyboardButton(text='بررسی کیفیت',callback_data=f'get_code:quality:{request_id}'),
-        ])
+        ]
+    
+    if setting.checker_status :
+        one_list.append(InlineKeyboardButton(text='چکر شماره',callback_data=f'get_code:checker:{request_id}'),)
+    buttons.append(one_list)
     
     buttons.append([
         InlineKeyboardButton(text='کنسل',callback_data=f'get_code:cancel:{request_id}'),

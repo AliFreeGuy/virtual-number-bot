@@ -54,7 +54,6 @@ class PaymentView(View):
                         user = user ,
                         amount = amount ,
                         key = str(response_data['Authority']),
-                        status = True
                         )
                     return JsonResponse({'status': True, 'url':ZP_API_STARTPAY + str(response_data['Authority']), 'authority': response_data['Authority']})
                 else:
@@ -62,7 +61,6 @@ class PaymentView(View):
                         user = user ,
                         amount = amount ,
                         key = str(response_data['Authority']),
-                        status = False
                         )
                     return JsonResponse({'status': False, 'code': str(response_data['Status'])})
                 

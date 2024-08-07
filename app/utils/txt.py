@@ -10,7 +10,8 @@ admin_message_cancel = 'با موفقیت کنسل شد !'
 admin_message_sended = 'با موفقیت پیام شما ارسال شد !'
 timedout_get_code = 'زمان دریافت کد گذشته است.'
 
-
+healthy_number = '✅ این شماره سالم و بن نمیباشد !'
+broken_number = '❌ این شماره سالم نیست و بن شده است !'
 
 def send_number_to_user_text(number_data , admin_text ):
 
