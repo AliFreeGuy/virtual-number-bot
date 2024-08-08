@@ -78,9 +78,7 @@ number_not_found = 'موجودی این کشور به اتمام رسیده !'
 def profile_data_text(user):
 
 
-    print(user)
     user_data = user.data if hasattr(user, 'data') else user
-    print(user.payments)
     
     now = datetime.now()
     jalali_now = jdatetime.datetime.fromgregorian(datetime=now)
