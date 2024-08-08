@@ -13,7 +13,7 @@ from datetime import datetime , timedelta
 @Client.on_message(f.updater &f.bot_is_on & f.user_is_active & f.user_is_join, group=2)
 async def command_manager(bot, msg):
     
-    if msg and msg.text :
+    if msg and msg.text :  
 
         if msg.text == '/privacy' :
             setting  = con.setting
@@ -273,7 +273,7 @@ async def callback_manager(bot, call):
 
 
 async def get_number_manager(bot, call):
-    user = con.get_user(call.from_user.id)  # دریافت اطلاعات کاربر
+    user = con.get_user(call.from_user.id)
     setting = con.setting
     validates = []
 
@@ -303,25 +303,32 @@ async def get_number_manager(bot, call):
 
 
 
-
 async def buy_number(bot, call, number, user, setting):
-    phone_number = utils.get_phone_number(token=setting.callino_key, contry=number['name'])
     setting = con.setting
-    if phone_number.get('success') is None:
-        phone_number['price'] = number['price']
-        phone_number['id'] = number['id']
-        phone_number['timestamp'] = datetime.now().timestamp()  # ذخیره زمان جاری به صورت timestamp
-        cache.redis.hmset(f'number:{phone_number["request_id"]}', phone_number)
-        await bot.edit_message_text(
-            chat_id=call.from_user.id,
-            text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
-            message_id=call.message.id,
-            reply_markup=btn.get_code_menu(phone_number['request_id']  , setting)
-        )
-    else:
-        await alert(bot, call, msg=txt.number_not_found)
+    if setting.auto_checker > 1 and setting.checker_key :
+        phone_generator = utils.get_phone_number(token=setting.callino_key, country=number['name'] , max_attempts=setting.auto_checker , checker_key=setting.checker_key)
+    else :
+        phone_generator = utils.get_phone_number(token=setting.callino_key, country=number['name'])
 
+    for phone_number in phone_generator:
+        if phone_number and phone_number.get('success') is None:  # اگر شماره معتبر بود
+            phone_number['price'] = number['price']
+            phone_number['id'] = number['id']
+            phone_number['timestamp'] = datetime.now().timestamp()  # ذخیره زمان جاری به صورت timestamp
+            cache.redis.hmset(f'number:{phone_number["request_id"]}', phone_number)
+            await bot.edit_message_text(
+                chat_id=call.from_user.id,
+                text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
+                message_id=call.message.id,
+                reply_markup=btn.get_code_menu(phone_number['request_id'], setting)
+            )
+            return  # عملیات را متوقف کن چون شماره معتبر پیدا شد
+        elif phone_number is None:
+            await alert(bot, call, msg=txt.number_not_found)
+            return
 
+    # اگر هیچ شماره معتبری پیدا نشد
+    await alert(bot, call, msg=txt.number_not_found)
 
 
 

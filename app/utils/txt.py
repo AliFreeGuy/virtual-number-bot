@@ -2,6 +2,8 @@
 import jdatetime
 from datetime import datetime
 import jdatetime
+import jdatetime
+from datetime import datetime
 
 admin_panel = 'منو مدیریت ربات :'
 recaved_support_message = 'پیام شما دریافت شد به زودی ادمین های ما پاسخ میدن !'
@@ -74,6 +76,9 @@ number_not_found = 'موجودی این کشور به اتمام رسیده !'
 
 
 def profile_data_text(user):
+
+
+    print(user)
     user_data = user.data if hasattr(user, 'data') else user
     print(user.payments)
     
@@ -85,7 +90,7 @@ def profile_data_text(user):
     jalali_creation_date = jdatetime.datetime.fromgregorian(datetime=creation_date)
     formatted_date_creation = jalali_creation_date.strftime('%Y/%m/%d')
     
-    total_payments_amount = sum(payment['amount'] for payment in user_data['payments'])
+    total_payments_amount = sum(payment['amount'] for payment in user_data['payments'] if payment['status'])
     total_transfers_count = len(user_data['transfers'])
     orders = 1  
     
@@ -100,6 +105,7 @@ def profile_data_text(user):
 ⏰ {formatted_date_now}
 '''
     return text
+
 
 
 

@@ -24,6 +24,7 @@ class SettingModel(models.Model):
     checker_key = models.CharField(max_length=256)
     callino_key = models.CharField(max_length=256 , default='none')
     checker_status = models.BooleanField()
+    auto_checker  = models.PositiveIntegerField(default=1)
     auth_status = models.BooleanField(default=False)
     user_limit_pay = models.BigIntegerField()
     ir_phone_only = models.BooleanField(default=False)

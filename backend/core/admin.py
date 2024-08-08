@@ -84,7 +84,7 @@ class SettingModelAdmin(admin.ModelAdmin):
             'fields': ('bot_status', 'bot_token', 'api_hash', 'api_id', 'bot_username', 'backup_channel', 'zarin_key', 'checker_key', 'callino_key' , 'session_string','number_rows','show_numbers' ,'number_timeout','interest_rates',)
         }),
         ('Status Fields', {
-            'fields': ('checker_status', 'auth_status', 'user_limit_pay', 'ir_phone_only', 'auth_phone')
+            'fields': ('checker_status','auto_checker', 'auth_status', 'user_limit_pay', 'ir_phone_only', 'auth_phone')
         }),
         ('Text Fields', {
             'fields': ('start_text', 'bot_off_text', 'support_text','user_no_inventory' ,  'help_text', 'rule_text', 'join_text', 'user_not_active_text', 'user_profile_text', 'privacy_text', 'approvalـrules', 'inventory_increase_text', 'auth_text', 'auth_phone_text', 'ir_phone_only_text' , 'buy_number_text' ,'send_number_to_user_text',  )

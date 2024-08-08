@@ -56,14 +56,30 @@ def get_numbers(token):
     return False
 
 
-def get_phone_number(token , contry ):
-    url = f'https://api.ozvinoo.xyz/web/{token}/getNumber/1/{contry}'
-    res = requests.get(url)
-    if res.status_code == 200 :
-        return res.json()
-    else :
-        return False
+def get_phone_number(token, country, max_attempts=1, checker_key=None):
+    url = f'https://api.ozvinoo.xyz/web/{token}/getNumber/1/{country}'
     
+    
+    for _ in range(max_attempts):
+        res = requests.get(url)
+        if res.status_code == 200:
+            data = res.json()
+            print(f"Received data: {data}")
+            
+            if checker_key and max_attempts > 1:
+                checker_result = checker([data['number']], api_key=checker_key)
+                if checker_result and checker_result[0]['status'] != 'ban':
+                    print(data)
+                    yield data  
+                else:
+                    print("Number failed checker validation.")
+                    continue  
+            else:
+                yield data  
+        else:
+            yield None  
+
+
 
 def get_code(token, request_id):
     url = f'https://api.ozvinoo.xyz/web/{token}/getCode/{str(request_id)}'
@@ -105,7 +121,6 @@ def checker(numbers, api_key):
         return []
     
     try:
-        # تلاش برای تجزیه پاسخ به فرمت JSON
         response_json = response.json()
         print(f"Response JSON: {response_json}")  # چاپ پاسخ دریافتی برای بررسی
         
