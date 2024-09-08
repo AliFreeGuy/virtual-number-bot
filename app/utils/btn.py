@@ -166,6 +166,26 @@ def get_code_menu(request_id , setting ):
 
 
 
+def get_twice_code(request_id , setting ):
+    
+    buttons = []
+
+    one_list  = [
+        InlineKeyboardButton(text='بررسی کیفیت',callback_data=f'get_code:quality:{request_id}'),
+        ]
+    
+    if setting.checker_status :
+        one_list.append(InlineKeyboardButton(text='چکر شماره',callback_data=f'get_code:checker:{request_id}'),)
+    buttons.append(one_list)
+    
+    buttons.append([
+        InlineKeyboardButton(text='خروج ربات',callback_data=f'get_code:logoutbot:{request_id}'),
+        InlineKeyboardButton(text='دریافت کد مجدد',callback_data=f'get_code:getcode:{request_id}'),
+        
+        ])
+    return InlineKeyboardMarkup(buttons)
+
+
 
 
 

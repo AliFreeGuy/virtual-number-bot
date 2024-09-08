@@ -83,23 +83,29 @@ def get_phone_number(token, country, max_attempts=1, checker_key=None):
 
 def get_code(token, request_id):
     url = f'https://api.ozvinoo.xyz/web/{token}/getCode/{str(request_id)}'
-    # try:
-    #     res = requests.get(url)
-    #     res.raise_for_status()
-    # except requests.exceptions.RequestException as e:
-    #     print(f"HTTP Request failed: {e}")
-    #     return False
-    # data = res.json()
-    # if 'code' in data:
-    #     return data['code']
-    # else:
-    #     print(f"Error: {data.get('error_msg', 'Unknown error')}")
-    #     return False
-
-    return True
+    try:
+        res = requests.get(url)
+        res.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"HTTP Request failed: {e}")
+        return False
+    data = res.json()
+    if 'code' in data:
+        return data['code']
+    else:
+        print(f"Error: {data.get('error_msg', 'Unknown error')}")
+        return False
 
 
 
+
+def logout_bot(token , request_id):
+    url = f'https://api.ozvinoo.xyz/web/{str(token)}/logout/{str(request_id)}'
+    print(url)
+    res = requests.get(url=url)
+    if res.status_code == 200 :
+        return True
+    return False
 
 
 

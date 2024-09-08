@@ -125,7 +125,6 @@ class InventoryTransferModel(models.Model):
             verbose_name_plural = "InventoryTransfer"
 
 
-
 class NumbersModel(models.Model):
     weight = models.IntegerField(default=1)
     name = models.CharField(max_length=128)
@@ -139,7 +138,7 @@ class NumbersModel(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-weight'] 
+        ordering = ['price', '-weight'] 
         verbose_name = "Numbers"
         verbose_name_plural = "Numbers"
 

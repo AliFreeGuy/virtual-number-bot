@@ -58,7 +58,7 @@ async def admin_manager(bot, msg):
 
         if msg.text == 'پنل' : 
             await panel_menu(bot ,msg )
-            await bot.pin_chat_message(msg.from_user.id, msg.id +1 , disable_notification=True , both_sides = True)
+            # await bot.pin_chat_message(msg.from_user.id, msg.id +1 , disable_notification=True , both_sides = True)
 
 
 

@@ -15,9 +15,22 @@ timedout_get_code = 'زمان دریافت کد گذشته است.'
 healthy_number = '✅ این شماره سالم و بن نمیباشد !'
 broken_number = '❌ این شماره سالم نیست و بن شده است !'
 
-def send_number_to_user_text(number_data , admin_text ):
 
+
+
+
+def logout_text(text):
+    text_data = f'''{text}\n\nربات با موفقیت از حساب خارج شد'''
+    return text_data
+
+
+def send_number_to_user_text(number_data , admin_text, code=None ):
+
+    if code :
+        code_text = f'کد دریافتی : `{str(code)}`\n➖➖➖➖➖➖➖➖➖➖➖'
+  
     text = f'''
+{code_text if code else ''}
 کشور : `{number_data['countery']}`
 قیمت : `{number_data['price']}`
 شماره : `{number_data['number']}`
@@ -113,9 +126,11 @@ send_user_auth = f'لطفا مدارک خود را ارسال کنید :'
 
 
 
-def payment_text(text):
-    return f'{text}\n\n✅ برای ورود به درگاه بر روی دکمه زیر بزنید'
-
+def payment_text(text, amount):
+    # متن پرداخت با استفاده از مبلغ
+    payment_message = f'💳 برای ورود به درگاه زرین پال و پرداخت {amount} تومن می‌توانید از کلید زیر استفاده کنید :'
+    # ترکیب متن ورودی با پیام پرداخت و پیغام دکمه
+    return f'{text}\n\n{payment_message}'
 
 
 

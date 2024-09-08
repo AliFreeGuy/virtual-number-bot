@@ -75,12 +75,6 @@ async def  buy_number_manager(bot , msg ):
 
 
 
-
-
-
-
-
-
 async def profile_manager(bot , msg ):
     user = con.get_user(msg.from_user.id)
     await bot.send_message(chat_id = msg.from_user.id , text = txt.profile_data_text(user) , reply_markup  = btn.profile_data_btn(user) , reply_to_message_id = msg.id)
@@ -99,62 +93,56 @@ async def  inventoryـincrease(bot , msg ) :
 
 
 async def inventory_transfer(bot , msg ):
-    setting = con.setting
-    user = con.get_user(msg.from_user.id)
-    user_chat_id = await bot.ask(msg.from_user.id , setting.inventory_transfer_text , reply_to_message_id = msg.id )
+    try :
+        setting = con.setting
+        user = con.get_user(msg.from_user.id)
+        user_chat_id = await bot.ask(msg.from_user.id , setting.inventory_transfer_text , reply_to_message_id = msg.id ,timeout = 10)
 
-    if user_chat_id and user_chat_id.text and user_chat_id.text.isdigit():
-        user_transfer = con.get_user(int(user_chat_id.text))
-        
-        if user_transfer :
-            inventory = await bot.ask(msg.from_user.id  , setting.inventory_transfer_amount_text , reply_to_message_id = user_chat_id.id)
-            if inventory and inventory.text and inventory.text.isdigit():
-                print(user.wallet)
-                if int(inventory.text)<= user.wallet and user.wallet > 0 and msg.from_user.id != user_chat_id.text:
-                    sender = msg.from_user.id
-                    recever = user_chat_id.text
-                    amount = inventory.text
-                    await bot.send_message(chat_id  = msg.from_user.id ,
-                                            text = txt.inventory_transfer_confirmation(sender , recever , amount)  , 
-                                            reply_markup = btn.inventory_transfer(sender , recever , amount) ,
-                                            reply_to_message_id = inventory.id)
-                
+        if user_chat_id and user_chat_id.text and user_chat_id.text.isdigit():
+            user_transfer = con.get_user(int(user_chat_id.text))
+            
+            if user_transfer :
+                inventory = await bot.ask(msg.from_user.id  , setting.inventory_transfer_amount_text , reply_to_message_id = user_chat_id.id , timeout=10)
+                if inventory and inventory.text and inventory.text.isdigit():
+                    print(user.wallet)
+                    if int(inventory.text)<= user.wallet and user.wallet > 0 and msg.from_user.id != user_chat_id.text:
+                        sender = msg.from_user.id
+                        recever = user_chat_id.text
+                        amount = inventory.text
+                        await bot.send_message(chat_id  = msg.from_user.id ,
+                                                text = txt.inventory_transfer_confirmation(sender , recever , amount)  , 
+                                                reply_markup = btn.inventory_transfer(sender , recever , amount) ,
+                                                reply_to_message_id = inventory.id)
+                    
+                    else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
                 else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
             else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
         else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
-    else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
     
-
+    except :print('timed out ...')
 
 
 
 
 
 async def support_manager(bot ,msg ):
-    setting = con.setting
-    message = await bot.ask(chat_id = msg.from_user.id , text = setting.support_text , reply_to_message_id = msg.id )
-    if message :
-        if message.text and message.text == '/cancel' :
-            await bot.ask(chat_id = msg.from_user.id , text = setting.start_text , reply_markup = btn.user_panel() )
-        else :
-            user_profile = f'tg://openmessage?user_id={message.from_user.id}'
-            await message.copy(config.ADMIN , reply_markup =btn.support_btn(
-                                                                            msg_id=message.id , 
-                                                                            chat_id=message.from_user.id ,
-                                                                            url=user_profile ,
-                                                                            user_name = message.from_user.first_name) )
-            await message.reply_text(txt.recaved_support_message , quote=True)
+    try :
+        setting = con.setting
+        message = await bot.ask(chat_id = msg.from_user.id , text = setting.support_text , reply_to_message_id = msg.id , timeout =10 )
+        if message :
+            if message.text and message.text == '/cancel' :
+                await bot.send_message(chat_id = msg.from_user.id , text = setting.start_text , reply_markup = btn.user_panel() )
+            else :
+                user_profile = f'tg://openmessage?user_id={message.from_user.id}'
+                await message.copy(config.ADMIN , reply_markup =btn.support_btn(
+                                                                                msg_id=message.id , 
+                                                                                chat_id=message.from_user.id ,
+                                                                                url=user_profile ,
+                                                                                user_name = message.from_user.first_name) )
+                await message.reply_text(txt.recaved_support_message , quote=True)
 
-        
+    except :print('time out ')
 
-
-
-                
-    
-            
-
-        
-        
 
 
 
@@ -167,25 +155,6 @@ async def start_manager(bot ,msg ):
 async def help_and_rule_manager(bot , msg ):
     setting = con.setting
     await bot.send_message(msg.from_user.id , setting.help_text , reply_markup= btn.help_and_rule_btn())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -311,17 +280,23 @@ async def buy_number(bot, call, number, user, setting):
         phone_generator = utils.get_phone_number(token=setting.callino_key, country=number['name'])
 
     for phone_number in phone_generator:
+        print(phone_number)
         if phone_number and phone_number.get('success') is None:  # اگر شماره معتبر بود
             phone_number['price'] = number['price']
             phone_number['id'] = number['id']
             phone_number['timestamp'] = datetime.now().timestamp()  # ذخیره زمان جاری به صورت timestamp
             cache.redis.hmset(f'number:{phone_number["request_id"]}', phone_number)
-            await bot.edit_message_text(
-                chat_id=call.from_user.id,
+
+            await bot.send_message(chat_id=call.from_user.id,
                 text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
-                message_id=call.message.id,
                 reply_markup=btn.get_code_menu(phone_number['request_id'], setting)
             )
+            # await bot.edit_message_text(
+            #     chat_id=call.from_user.id,
+            #     text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
+            #     message_id=call.message.id,
+            #     reply_markup=btn.get_code_menu(phone_number['request_id'], setting)
+            # )
             return  # عملیات را متوقف کن چون شماره معتبر پیدا شد
         elif phone_number is None:
             await alert(bot, call, msg=txt.number_not_found)
@@ -369,25 +344,39 @@ async def get_code_manager(bot, call):
 
     elif status == 'getcode':
         timestamp = float(phone_data.get('timestamp', 0))
-        if datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
-            await alert(bot, call, msg = txt.timedout_get_code)
+        phone_buyed = cache.redis.get(f'phone_buyed:{phone_data["number"]}')
+
+        if not phone_buyed and datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
+            await alert(bot, call, msg=txt.timedout_get_code)
         else:
+            cache.redis.set(f'phone_buyed:{phone_data["number"]}', 'purchased')
             code = utils.get_code(token=setting.callino_key, request_id=request_id)
+            
             if code:
                 data = con.add_order(
-                            chat_id=user.chat_id ,
-                            price=phone_data['price'] ,
-                            country_id=phone_data['id'] ,
+                            chat_id=user.chat_id,
+                            price=phone_data['price'],
+                            country_id=phone_data['id'],
                             number=phone_data['number'],
                             request_id=phone_data['request_id'])
-                await bot.send_message(call.from_user.id, text=txt.get_code(code))
-                await alert(bot , call , msg=txt.get_code(code))
-                if data :
-                    await bot.send_message(setting.backup_channel , text = txt.backup_buy_number(user.chat_id ,
-                                                                                                phone_data['number'] , 
-                                                                                                phone_data['countery'] , 
-                                                                                                phone_data['price'] ,
-                                                                                                user.wallet))
+                
+                await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id,
+                                            text=txt.send_number_to_user_text(phone_data, setting.send_number_to_user_text, code=code),
+                                            reply_markup=btn.get_twice_code(phone_data['request_id'], setting))
+                
+                if data:
+                    await bot.send_message(setting.backup_channel, text=txt.backup_buy_number(user.chat_id,
+                                                                                            phone_data['number'],
+                                                                                            phone_data['countery'],
+                                                                                            phone_data['price'],
+                                                                                            user.wallet))
+
+                    
+    elif status == 'logoutbot' :
+        logout = utils.logout_bot(token=setting.callino_key , request_id=call.data.split(':')[2])
+        if logout :
+            await bot.edit_message_text(chat_id = call.from_user.id , message_id = call.message.id, text=txt.logout_text(call.message.text),)
+        
             
 
 
@@ -432,12 +421,13 @@ async def send_auth_data_manager(bot , call ):
     user= con.get_user(call.from_user.id)
     if user.is_auth is False : 
         setting = con.setting
-        user_auth = await bot.ask(chat_id = call.from_user.id , text = txt.send_user_auth , reply_to_message_id = call.message.id )
-        await user_auth.copy(chat_id = int(setting.backup_channel) ,reply_markup = btn.user_auth_btn(user =user  ) )
-        await bot.send_message(chat_id = call.from_user.id , text = setting.received_auth_text )
+        try :
+            user_auth = await bot.ask(chat_id = call.from_user.id , text = txt.send_user_auth , reply_to_message_id = call.message.id   , timeout = 10)
+            await user_auth.copy(chat_id = int(setting.backup_channel) ,reply_markup = btn.user_auth_btn(user =user  ) )
+            await bot.send_message(chat_id = call.from_user.id , text = setting.received_auth_text )
 
-    else :
-        await alert(bot , call , txt.user_is_auth)
+        except : print('timed out ...')
+    else : await alert(bot , call , txt.user_is_auth)
     
 
 
@@ -543,35 +533,33 @@ async def inventory_increase_manager(bot , call):
 
     if not validates:
 
-        await deleter(bot , call , call.message.id +1 )
-        amount =await  bot.ask(chat_id = call.from_user.id , text = setting.inventory_increase_text  , reply_to_message_id = call.message.id)
+        try :
+            await deleter(bot , call , call.message.id +1 )
+            amount =await  bot.ask(chat_id = call.from_user.id , text = setting.inventory_increase_text  , reply_to_message_id = call.message.id , timeout = 10)
 
-        if amount and amount.text and amount.text.isdigit() :
-            
-            user_amount = int(amount.text)
+            if amount and amount.text and amount.text.isdigit() :
+                
+                user_amount = int(amount.text)
 
-            if user_amount <= setting.user_limit_pay :
+                if user_amount <= setting.user_limit_pay :
 
-                paymnet_data = con.payment_url(chat_id=call.from_user.id , amount=user_amount)
-                print(paymnet_data)
-                if paymnet_data :
-                    await bot.edit_message_text(chat_id = call.from_user.id ,
-                                                text = txt.payment_text(call.message.text) ,
-                                                message_id = call.message.id ,
-                                                reply_markup = btn.payment_btn(paymnet_data) 
-                                                )
-            
-            else :await alert(bot , call ,msg=txt.err_limit_amount)
-        else : await alert(bot , call , msg=txt.err_inventory_increase)
-        await deleter(bot , call , call.message.id +1 )
+                    paymnet_data = con.payment_url(chat_id=call.from_user.id , amount=user_amount)
+                    print(paymnet_data)
+                    if paymnet_data :
+                        await bot.edit_message_text(chat_id = call.from_user.id ,
+                                                    text = txt.payment_text(call.message.text  ,user_amount) ,
+                                                    message_id = call.message.id ,
+                                                    reply_markup = btn.payment_btn(paymnet_data) 
+                                                    )
+                
+                else :await alert(bot , call ,msg=txt.err_limit_amount)
+            else : await alert(bot , call , msg=txt.err_inventory_increase)
+            await deleter(bot , call , call.message.id +1 )
+
+        except : print('timed out ')
     else :await alert(bot , call , msg=validates[0])
 
     
-
-
-
-
-
 
 
     
@@ -603,13 +591,15 @@ async def inventory_transfer_call(bot , call ):
 async def support_answer(bot , call ):
     user_chat_id = call.data.split(':')[1]
     user_message_id = call.data.split(':')[2]
-    admin_msg = await bot.ask(chat_id = call.from_user.id , text = txt.admin_message , reply_to_message_id = call.message.id )
-    if admin_msg :
-        if admin_msg.text and admin_msg.text == '/cancel' :
-            await alert(bot , call , msg = txt.admin_message_cancel)
-        else :
-            await admin_msg.copy(int(user_chat_id)  , reply_to_message_id = int(user_message_id) )
-            await alert(bot , call , msg = txt.admin_message_sended)
+    try :
+        admin_msg = await bot.ask(chat_id = call.from_user.id , text = txt.admin_message , reply_to_message_id = call.message.id , timeout = 10 )
+        if admin_msg :
+            if admin_msg.text and admin_msg.text == '/cancel' :
+                await alert(bot , call , msg = txt.admin_message_cancel)
+            else :
+                await admin_msg.copy(int(user_chat_id)  , reply_to_message_id = int(user_message_id) )
+                await alert(bot , call , msg = txt.admin_message_sended)
+    except :print('timed out ')
 
 
         

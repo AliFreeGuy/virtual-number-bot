@@ -18,11 +18,11 @@ from core.tasks import send_message
 
 
 
-sandbox = 'sandbox' if settings.DEBUG else 'www'
+sandbox = 'www'
 ZP_API_REQUEST = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
 ZP_API_VERIFY = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
 ZP_API_STARTPAY = f"https://{sandbox}.zarinpal.com/pg/StartPay/"
-CallbackURL = 'http://127.0.0.1:8000/verify/'
+CallbackURL = 'http://116.203.154.145:8000/verify/'
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -32,11 +32,11 @@ class PaymentView(View):
         chat_id = request.POST.get('chat_id')
         user = User.objects.get(chat_id = chat_id)
         setting = models.SettingModel.objects.first()
-
+        description_text = f'{setting.payment_description}\n {str(chat_id)} - ربات شماره مجازی - {str(amount)} تومان'
         data = {
             "MerchantID": setting.zarin_key,
             "Amount": int(amount),
-            "Description": setting.payment_description,
+            "Description": description_text,
             "Phone": '09123456789',
             "CallbackURL": CallbackURL,
         }
@@ -80,7 +80,7 @@ class PaymentView(View):
 def verify(request):
 
     authority = request.GET.get('Authority')
-    payment_data = models.UserPaymentModel.objects.get(key = authority)
+    payment_data = models.UserPaymentModel.objects.get(key=authority)
     setting = models.SettingModel.objects.first()
 
     if authority:
@@ -98,31 +98,30 @@ def verify(request):
             if response_data['Status'] == 100:
                 payment_data.status = True
                 payment_data.save()
-                print(f' ****************************************** pardakht movafagh ******************************************')
-                user_chat_id = payment_data.user.chat_id
-                user_amount = payment_data.amount
-                user = payment_data.user 
+
+                # ذخیره موجودی قبلی
+                user = payment_data.user
+                previous_wallet_balance = user.wallet
+                
                 user.wallet += payment_data.amount
                 user.save()
-                send_message.delay(status = 'ok' , chat_id=user_chat_id ,amount = user_amount , date = payment_data.creation )
-                print(f' ****************************************** pardakht movafagh ******************************************')
+
+                # ارسال موجودی قبلی به تسک
+                send_message.delay(
+                    status='ok',
+                    chat_id=user.chat_id,
+                    amount=payment_data.amount,
+                    previous_balance=previous_wallet_balance,  # موجودی قبلی
+                    date=payment_data.creation
+                )
                 return render(request, 'core/success.html')
             
             else:
                 payment_data.status = False
                 payment_data.save()
-                print(f'****************************************** pardakht namovafagh ******************************************')
-                user_chat_id = payment_data.user.chat_id
-                user_amount = payment_data.amount
-                print(f'****************************************** pardakht namovafagh ******************************************')
-
-
                 return render(request, 'core/unsuccess.html')
         return render(request,  'core/unsuccess.html')
     return render(request,  'core/unsuccess.html')
-
-
-
 
 
 
