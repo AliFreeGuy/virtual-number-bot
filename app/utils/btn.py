@@ -65,7 +65,7 @@ def profile_data_btn(user , back = False , auth = False ):
     buttons = []
     
     if not back :
-        buttons.append([InlineKeyboardButton(text='احراز هویت',callback_data='authentication'),])
+        buttons.append([InlineKeyboardButton(text='احراز هویت',callback_data='authentication'),InlineKeyboardButton(text='انتقال موجودی',callback_data='inventory_transfer')])
         buttons.append([InlineKeyboardButton(text='واریز ها',callback_data='deposits'),
                         InlineKeyboardButton(text='انتقالی ها',callback_data='transitions'),
                         InlineKeyboardButton(text='سفارش ها',callback_data='orders')])
@@ -119,7 +119,7 @@ def user_panel():
     marks = [
                     ['خرید شماره مجازی'],
                     ['حساب کاربری' , 'افزایش موجودی',],
-                    ['راهنما و قوانین' , 'پشتیبانی' , 'انتقال موجودی']
+                    ['راهنما و قوانین' , 'پشتیبانی' , 'چکر شماره']
             ]
     return ReplyKeyboardMarkup(marks , resize_keyboard=True )
 
@@ -189,7 +189,16 @@ def get_twice_code(request_id , setting ):
 
 
 
+def get_admin_code(request_id ):
 
+
+    buttons = []
+    buttons.append([
+        InlineKeyboardButton(text='دریافت کد',callback_data=f'get_code:getcode_admin:{request_id}'),
+        InlineKeyboardButton(text='خروج ربات',callback_data=f'get_code:logoutbot_admin:{request_id}'),
+        
+        ])
+    return InlineKeyboardMarkup(buttons)
 
 
 

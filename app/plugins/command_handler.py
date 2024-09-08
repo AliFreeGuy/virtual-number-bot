@@ -44,8 +44,8 @@ async def command_manager(bot, msg):
         elif msg.text == 'برگشت به منو قبل 🔙':
             await start_manager(bot , msg )
         
-        elif msg.text == 'انتقال موجودی' : 
-            await inventory_transfer(bot , msg )
+        elif msg.text == 'چکر شماره' : 
+            await number_checker(bot , msg )
         
         elif msg.text in ['/profile' , 'حساب کاربری']:
             await profile_manager(bot , msg )
@@ -61,6 +61,12 @@ async def command_manager(bot, msg):
         #     await bot.send_message(msg.from_user.id , text = setting.inventory_increase_text , reply_markup = btn.inventory_increase_btn())
 
 
+
+
+
+
+async def number_checker(bot , msg ):
+    print('hi user mother fucker ')
         
 
 
@@ -96,7 +102,7 @@ async def inventory_transfer(bot , msg ):
     try :
         setting = con.setting
         user = con.get_user(msg.from_user.id)
-        user_chat_id = await bot.ask(msg.from_user.id , setting.inventory_transfer_text , reply_to_message_id = msg.id ,timeout = 10)
+        user_chat_id = await bot.ask(msg.from_user.id , setting.inventory_transfer_text , reply_to_message_id = msg.message.id ,timeout = 10)
 
         if user_chat_id and user_chat_id.text and user_chat_id.text.isdigit():
             user_transfer = con.get_user(int(user_chat_id.text))
@@ -119,7 +125,7 @@ async def inventory_transfer(bot , msg ):
             else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
         else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
     
-    except :print('timed out ...')
+    except Exception as e :print(e)
 
 
 
@@ -129,7 +135,7 @@ async def support_manager(bot ,msg ):
     try :
         setting = con.setting
         message = await bot.ask(chat_id = msg.from_user.id , text = setting.support_text , reply_to_message_id = msg.id , timeout =10 )
-        if message :
+        if message and message.text and message.text not in utils.commands:
             if message.text and message.text == '/cancel' :
                 await bot.send_message(chat_id = msg.from_user.id , text = setting.start_text , reply_markup = btn.user_panel() )
             else :
@@ -141,7 +147,12 @@ async def support_manager(bot ,msg ):
                                                                                 user_name = message.from_user.first_name) )
                 await message.reply_text(txt.recaved_support_message , quote=True)
 
-    except :print('time out ')
+        if message.text and message.text in utils.commands :
+            await command_manager(bot , message )
+
+
+
+    except Exception as e : print(e)
 
 
 
@@ -216,6 +227,9 @@ async def callback_manager(bot, call):
     elif status == 'authentication' :
         await  authentication_manager(bot , call )
     
+    elif status == 'inventory_transfer' :
+        await inventory_transfer(bot , call )
+    
     elif status == 'send_auth_data' :
         await send_auth_data_manager(bot , call )
     
@@ -233,6 +247,7 @@ async def callback_manager(bot, call):
     
     elif status.startswith('get_code'):
         await get_code_manager(bot , call )
+     
 
     elif status == 'orders':
         await orders_manager(bot, call )
@@ -274,9 +289,10 @@ async def get_number_manager(bot, call):
 
 async def buy_number(bot, call, number, user, setting):
     setting = con.setting
-    if setting.auto_checker > 1 and setting.checker_key :
-        phone_generator = utils.get_phone_number(token=setting.callino_key, country=number['name'] , max_attempts=setting.auto_checker , checker_key=setting.checker_key)
-    else :
+
+    if setting.auto_checker > 1 and setting.checker_key:
+        phone_generator = utils.get_phone_number(token=setting.callino_key, country=number['name'], max_attempts=setting.auto_checker, checker_key=setting.checker_key)
+    else:
         phone_generator = utils.get_phone_number(token=setting.callino_key, country=number['name'])
 
     for phone_number in phone_generator:
@@ -287,23 +303,16 @@ async def buy_number(bot, call, number, user, setting):
             phone_number['timestamp'] = datetime.now().timestamp()  # ذخیره زمان جاری به صورت timestamp
             cache.redis.hmset(f'number:{phone_number["request_id"]}', phone_number)
 
-            await bot.send_message(chat_id=call.from_user.id,
+            await bot.send_message(
+                chat_id=call.from_user.id,
                 text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
                 reply_markup=btn.get_code_menu(phone_number['request_id'], setting)
             )
-            # await bot.edit_message_text(
-            #     chat_id=call.from_user.id,
-            #     text=txt.send_number_to_user_text(phone_number, setting.send_number_to_user_text),
-            #     message_id=call.message.id,
-            #     reply_markup=btn.get_code_menu(phone_number['request_id'], setting)
-            # )
-            return  # عملیات را متوقف کن چون شماره معتبر پیدا شد
-        elif phone_number is None:
-            await alert(bot, call, msg=txt.number_not_found)
-            return
+            return  # عملیات متوقف می‌شود چون شماره معتبر پیدا شد
 
     # اگر هیچ شماره معتبری پیدا نشد
     await alert(bot, call, msg=txt.number_not_found)
+
 
 
 
@@ -342,6 +351,27 @@ async def get_code_manager(bot, call):
 
 
 
+    elif status == 'getcode_admin' :
+        phone_buyed = cache.redis.get(f'phone_buyed:{phone_data["number"]}')
+        if not phone_buyed and datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
+            await alert(bot, call, msg=txt.timedout_get_code)
+
+        else :
+            code = utils.get_code(token=setting.callino_key, request_id=request_id)
+            text_lines = call.message.text.splitlines()
+            if text_lines and text_lines[-1].startswith('CODE'):
+                text_lines = text_lines[:-1]
+            new_text = '\n'.join(text_lines).rstrip() + f'\n\nCODE : {code}'
+            await bot.edit_message_text(
+                                        chat_id = call.message.sender_chat.id,
+                                        message_id = call.message.id,
+                                        text = new_text,
+                                        reply_markup=btn.get_admin_code(phone_data['request_id'])
+                                        )
+
+
+
+        
     elif status == 'getcode':
         timestamp = float(phone_data.get('timestamp', 0))
         phone_buyed = cache.redis.get(f'phone_buyed:{phone_data["number"]}')
@@ -350,7 +380,9 @@ async def get_code_manager(bot, call):
             await alert(bot, call, msg=txt.timedout_get_code)
         else:
             cache.redis.set(f'phone_buyed:{phone_data["number"]}', 'purchased')
+            callinot_old_amount = utils.callino_amount(setting.callino_key)
             code = utils.get_code(token=setting.callino_key, request_id=request_id)
+            callino_new_amount = utils.callino_amount(setting.callino_key)
             
             if code:
                 data = con.add_order(
@@ -360,25 +392,46 @@ async def get_code_manager(bot, call):
                             number=phone_data['number'],
                             request_id=phone_data['request_id'])
                 
-                await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id,
-                                            text=txt.send_number_to_user_text(phone_data, setting.send_number_to_user_text, code=code),
-                                            reply_markup=btn.get_twice_code(phone_data['request_id'], setting))
-                
+
+
+                try :
+                    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id,
+                                                text=txt.send_number_to_user_text(phone_data, setting.send_number_to_user_text),
+                                                reply_markup=btn.get_twice_code(phone_data['request_id'], setting))
+                except Exception as e :print(e)
+
+                await bot.send_message(chat_id = call.from_user.id ,text=txt.send_code_to_user_text(phone_data, setting.send_number_to_user_text , code=code),)
+
                 if data:
                     await bot.send_message(setting.backup_channel, text=txt.backup_buy_number(user.chat_id,
                                                                                             phone_data['number'],
                                                                                             phone_data['countery'],
                                                                                             phone_data['price'],
-                                                                                            user.wallet))
+                                                                                            user.wallet , callinot_old_amount , callino_new_amount),
+                                                                                            reply_markup  =btn.get_admin_code(phone_data['request_id']))
 
-                    
+        
+    elif status == 'logoutbot_admin' :  
+        logout = utils.logout_bot(token=setting.callino_key , request_id=call.data.split(':')[2])
+        if logout :
+            await bot.edit_message_text(
+                                        chat_id = call.message.sender_chat.id,
+                                        message_id = call.message.id,
+                                        text = call.message.text + '\nربات با موفقیت از حساب خارج شد .',
+                                        )
+
+
     elif status == 'logoutbot' :
         logout = utils.logout_bot(token=setting.callino_key , request_id=call.data.split(':')[2])
         if logout :
-            await bot.edit_message_text(chat_id = call.from_user.id , message_id = call.message.id, text=txt.logout_text(call.message.text),)
-        
-            
-
+            logout_btn_remvove = await bot.edit_message_text(chat_id = call.from_user.id , message_id = call.message.id, text=txt.send_number_to_user_text(phone_data , setting.send_number_to_user_text),)
+            logout_btn_text = logout_btn_remvove.text
+            lines = logout_btn_text.splitlines()
+            if len(lines) >= 3:
+                selected_lines = lines[:3] 
+                text = "\n".join(selected_lines) 
+            else:text = logout_btn_text
+            await bot.send_message(chat_id=call.from_user.id, text=txt.logout_text(text))
 
 
 
@@ -423,8 +476,12 @@ async def send_auth_data_manager(bot , call ):
         setting = con.setting
         try :
             user_auth = await bot.ask(chat_id = call.from_user.id , text = txt.send_user_auth , reply_to_message_id = call.message.id   , timeout = 10)
-            await user_auth.copy(chat_id = int(setting.backup_channel) ,reply_markup = btn.user_auth_btn(user =user  ) )
-            await bot.send_message(chat_id = call.from_user.id , text = setting.received_auth_text )
+            if user_auth  and user_auth.text not in utils.commands :
+                print('hi user ')
+                await user_auth.copy(chat_id = int(setting.backup_channel) ,reply_markup = btn.user_auth_btn(user =user  ) )
+                await bot.send_message(chat_id = call.from_user.id , text = setting.received_auth_text )
+            else :
+                await command_manager(bot , user_auth )
 
         except : print('timed out ...')
     else : await alert(bot , call , txt.user_is_auth)
@@ -535,9 +592,9 @@ async def inventory_increase_manager(bot , call):
 
         try :
             await deleter(bot , call , call.message.id +1 )
-            amount =await  bot.ask(chat_id = call.from_user.id , text = setting.inventory_increase_text  , reply_to_message_id = call.message.id , timeout = 10)
+            amount = await  bot.ask(chat_id = call.from_user.id , text = setting.inventory_increase_text  , reply_to_message_id = call.message.id , timeout = 10)
 
-            if amount and amount.text and amount.text.isdigit() :
+            if amount and amount.text and amount.text.isdigit() and amount.text not in utils.commands:
                 
                 user_amount = int(amount.text)
 
@@ -553,8 +610,13 @@ async def inventory_increase_manager(bot , call):
                                                     )
                 
                 else :await alert(bot , call ,msg=txt.err_limit_amount)
-            else : await alert(bot , call , msg=txt.err_inventory_increase)
-            await deleter(bot , call , call.message.id +1 )
+            
+            elif amount.text and amount.text in utils.commands :
+                await command_manager(bot , amount)
+                
+            else : 
+                await alert(bot , call , msg=txt.err_inventory_increase)
+                await deleter(bot , call , call.message.id +1 )
 
         except : print('timed out ')
     else :await alert(bot , call , msg=validates[0])

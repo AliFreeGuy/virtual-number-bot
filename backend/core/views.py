@@ -32,7 +32,7 @@ class PaymentView(View):
         chat_id = request.POST.get('chat_id')
         user = User.objects.get(chat_id = chat_id)
         setting = models.SettingModel.objects.first()
-        description_text = f'{setting.payment_description}\n {str(chat_id)} - ربات شماره مجازی - {str(amount)} تومان'
+        description_text = f'{str(chat_id)} - ربات شماره مجازی - {str(amount)} تومان'
         data = {
             "MerchantID": setting.zarin_key,
             "Amount": int(amount),

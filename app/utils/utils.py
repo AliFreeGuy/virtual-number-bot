@@ -59,42 +59,48 @@ def get_numbers(token):
 def get_phone_number(token, country, max_attempts=1, checker_key=None):
     url = f'https://api.ozvinoo.xyz/web/{token}/getNumber/1/{country}'
     
-    
     for _ in range(max_attempts):
         res = requests.get(url)
+        
         if res.status_code == 200:
             data = res.json()
             print(f"Received data: {data}")
             
-            if checker_key and max_attempts > 1:
-                checker_result = checker([data['number']], api_key=checker_key)
-                if checker_result and checker_result[0]['status'] != 'ban':
-                    print(data)
-                    yield data  
+            # بررسی اینکه آیا کلید 'number' در داده‌های دریافت شده وجود دارد
+            if 'number' in data:
+                if checker_key and max_attempts > 1:
+                    checker_result = checker([data['number']], api_key=checker_key)
+                    if checker_result and checker_result[0]['status'] != 'ban':
+                        print(data)
+                        yield data  
+                    else:
+                        print("Number failed checker validation.")
+                        continue  
                 else:
-                    print("Number failed checker validation.")
-                    continue  
+                    yield data  
             else:
-                yield data  
+                print("Key 'number' not found in the response.")
+                yield None  # اگر کلید 'number' وجود ندارد، مقدار None بازگردانده می‌شود
         else:
-            yield None  
+            yield None  # در صورت عدم موفقیت درخواست
 
 
 
 def get_code(token, request_id):
-    url = f'https://api.ozvinoo.xyz/web/{token}/getCode/{str(request_id)}'
-    try:
-        res = requests.get(url)
-        res.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"HTTP Request failed: {e}")
-        return False
-    data = res.json()
-    if 'code' in data:
-        return data['code']
-    else:
-        print(f"Error: {data.get('error_msg', 'Unknown error')}")
-        return False
+    return True
+    # url = f'https://api.ozvinoo.xyz/web/{token}/getCode/{str(request_id)}'
+    # try:
+    #     res = requests.get(url)
+    #     res.raise_for_status()
+    # except requests.exceptions.RequestException as e:
+    #     print(f"HTTP Request failed: {e}")
+    #     return False
+    # data = res.json()
+    # if 'code' in data:
+    #     return data['code']
+    # else:
+    #     print(f"Error: {data.get('error_msg', 'Unknown error')}")
+    #     return False
 
 
 
@@ -144,3 +150,29 @@ def checker(numbers, api_key):
         print(f'Error: {e}')
         return []
 
+
+def callino_amount(token ):
+    try : 
+        data = requests.get(f'http://api.ozvinoo.xyz/web/{token}/get-balance')
+        if data.status_code == 200 :
+            data = data.json()
+            return data['balance']
+    except Exception as e :
+        return 0
+    
+
+commands =[
+        '/privacy',
+        '/start',
+        'راهنما و قوانین',
+        '/help',
+        '/rule',
+        '/support',
+        'پشتیبانی',
+        'افزایش موجودی',
+        'برگشت به منو قبل 🔙',
+        'چکر شماره',
+        '/profile',
+        'حساب کاربری',
+        'خرید شماره مجازی'
+    ]

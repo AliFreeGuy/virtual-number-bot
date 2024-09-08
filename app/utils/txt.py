@@ -20,8 +20,13 @@ broken_number = '❌ این شماره سالم نیست و بن شده است !
 
 
 def logout_text(text):
-    text_data = f'''{text}\n\nربات با موفقیت از حساب خارج شد'''
-    return text_data
+
+    text = f'''ربات از اکانت خارج شد 
+➖➖➖➖➖➖➖➖➖➖➖
+{text}'''
+    return text
+
+
 
 
 def send_number_to_user_text(number_data , admin_text, code=None ):
@@ -41,6 +46,18 @@ def send_number_to_user_text(number_data , admin_text, code=None ):
     return text
 
 
+def send_code_to_user_text(number_data , admin_text, code=None):
+    if code :
+        code_text = f'کد دریافتی : `{str(code)}`\n➖➖➖➖➖➖➖➖➖➖➖'
+  
+    text = f'''
+{code_text if code else ''}
+کشور : `{number_data['countery']}`
+قیمت : `{number_data['price']}`
+شماره : `{number_data['number']}`
+
+'''
+    return text
 
 
 def inventory_transfer_confirmation(sender ,recever , amount ):
@@ -149,7 +166,7 @@ def success_transfer_text(amoutn ,user_wallet ):
 
 
 
-def backup_buy_number(chat_id , number , country  , price   , wallet ):
+def backup_buy_number(chat_id , number , country  , price   , wallet   , old_amount , new_amount ):
 
     now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
 
@@ -161,6 +178,9 @@ def backup_buy_number(chat_id , number , country  , price   , wallet ):
 کشور : {country}
 قیمت : {price}
 موجودی کاربر : {wallet}
+
+موجودی قبلی کالینو : {str(old_amount)}
+موجودی جدید کالینو : {str(new_amount)}
 
 
 ⏰ {now_date_time}'''
