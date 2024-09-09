@@ -106,8 +106,8 @@ async def inventory_transfer(bot , msg ):
         setting = con.setting
         user = con.get_user(msg.from_user.id)
         user_chat_id = await bot.ask(msg.from_user.id , setting.inventory_transfer_text , reply_to_message_id = msg.message.id ,timeout = 10)
-
-        if user_chat_id and user_chat_id.text and user_chat_id.text.isdigit():
+        
+        if user_chat_id and user_chat_id.text and user_chat_id.text.isdigit() and user_chat_id.text not in utils.commands:
             user_transfer = con.get_user(int(user_chat_id.text))
             
             if user_transfer :
@@ -126,6 +126,10 @@ async def inventory_transfer(bot , msg ):
                     else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
                 else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
             else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
+        
+        elif user_chat_id and user_chat_id.text in utils.commands :
+            await command_manager(bot , user_chat_id)
+
         else :await bot.send_message(msg.from_user.id , setting.inventory_transfer_error_text)
     
     except Exception as e :print(e)
