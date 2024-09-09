@@ -66,7 +66,10 @@ async def command_manager(bot, msg):
 
 
 async def number_checker(bot , msg ):
-    print('hi user mother fucker ')
+    user = con.user(chat_id=msg.from_user.id , full_name=msg.from_user.first_name)
+    print(user)
+    # numbers = await bot.ask(msg.from_user.id , .inventory_transfer_text , reply_to_message_id = msg.message.id ,timeout = 10)
+
         
 
 
@@ -246,7 +249,11 @@ async def callback_manager(bot, call):
         await get_number_manager(bot , call )
     
     elif status.startswith('get_code'):
-        await get_code_manager(bot , call )
+        logout_key = f'is_logout:{call.data.split(":")[2]}'
+        if not cache.redis.get(logout_key):
+            await get_code_manager(bot , call )
+        else :await alert(bot , call , txt.user_is_logout)
+        
      
 
     elif status == 'orders':
@@ -373,44 +380,47 @@ async def get_code_manager(bot, call):
 
         
     elif status == 'getcode':
-        timestamp = float(phone_data.get('timestamp', 0))
-        phone_buyed = cache.redis.get(f'phone_buyed:{phone_data["number"]}')
-
-        if not phone_buyed and datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
-            await alert(bot, call, msg=txt.timedout_get_code)
-        else:
-            cache.redis.set(f'phone_buyed:{phone_data["number"]}', 'purchased')
-            callinot_old_amount = utils.callino_amount(setting.callino_key)
-            code = utils.get_code(token=setting.callino_key, request_id=request_id)
-            callino_new_amount = utils.callino_amount(setting.callino_key)
-            
-            if code:
-                data = con.add_order(
-                            chat_id=user.chat_id,
-                            price=phone_data['price'],
-                            country_id=phone_data['id'],
-                            number=phone_data['number'],
-                            request_id=phone_data['request_id'])
-                
-
-
-                try :
-                    await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id,
-                                                text=txt.send_number_to_user_text(phone_data, setting.send_number_to_user_text),
-                                                reply_markup=btn.get_twice_code(phone_data['request_id'], setting))
-                except Exception as e :print(e)
-
-                await bot.send_message(chat_id = call.from_user.id ,text=txt.send_code_to_user_text(phone_data, setting.send_number_to_user_text , code=code),)
-
-                if data:
-                    await bot.send_message(setting.backup_channel, text=txt.backup_buy_number(user.chat_id,
-                                                                                            phone_data['number'],
-                                                                                            phone_data['countery'],
-                                                                                            phone_data['price'],
-                                                                                            user.wallet , callinot_old_amount , callino_new_amount),
-                                                                                            reply_markup  =btn.get_admin_code(phone_data['request_id']))
-
+     
         
+            timestamp = float(phone_data.get('timestamp', 0))
+            phone_buyed = cache.redis.get(f'phone_buyed:{phone_data["number"]}')
+
+            if not phone_buyed and datetime.now() - datetime.fromtimestamp(timestamp) > timedelta(minutes=5):
+                await alert(bot, call, msg=txt.timedout_get_code)
+            else:
+                cache.redis.set(f'phone_buyed:{phone_data["number"]}', 'purchased')
+                callinot_old_amount = utils.callino_amount(setting.callino_key)
+                code = utils.get_code(token=setting.callino_key, request_id=request_id)
+                callino_new_amount = utils.callino_amount(setting.callino_key)
+                
+                if code:
+                    data = con.add_order(
+                                chat_id=user.chat_id,
+                                price=phone_data['price'],
+                                country_id=phone_data['id'],
+                                number=phone_data['number'],
+                                request_id=phone_data['request_id'])
+                    
+
+
+                    try :
+                        await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id,
+                                                    text=txt.send_number_to_user_text(phone_data, setting.send_number_to_user_text),
+                                                    reply_markup=btn.get_twice_code(phone_data['request_id'], setting))
+                    except Exception as e :print(e)
+
+                    await bot.send_message(chat_id = call.from_user.id ,text=txt.send_code_to_user_text(phone_data, setting.send_number_to_user_text , code=code),)
+
+                    if data:
+                        await bot.send_message(setting.backup_channel, text=txt.backup_buy_number(user.chat_id,
+                                                                                                phone_data['number'],
+                                                                                                phone_data['countery'],
+                                                                                                phone_data['price'],
+                                                                                                user.wallet , callinot_old_amount , callino_new_amount),
+                                                                                                reply_markup  =btn.get_admin_code(phone_data['request_id']))
+
+
+
     elif status == 'logoutbot_admin' :  
         logout = utils.logout_bot(token=setting.callino_key , request_id=call.data.split(':')[2])
         if logout :
@@ -422,9 +432,15 @@ async def get_code_manager(bot, call):
 
 
     elif status == 'logoutbot' :
+        await bot.send_message(chat_id = call.from_user.id , text = txt.logout_text_q , reply_markup = btn.logout_q(call.data.split(':')[2]))
+
+
+
+    elif status == 'logoutbot_ok' :
         logout = utils.logout_bot(token=setting.callino_key , request_id=call.data.split(':')[2])
         if logout :
             logout_btn_remvove = await bot.edit_message_text(chat_id = call.from_user.id , message_id = call.message.id, text=txt.send_number_to_user_text(phone_data , setting.send_number_to_user_text),)
+            await logout_btn_remvove.delete()
             logout_btn_text = logout_btn_remvove.text
             lines = logout_btn_text.splitlines()
             if len(lines) >= 3:
@@ -432,6 +448,12 @@ async def get_code_manager(bot, call):
                 text = "\n".join(selected_lines) 
             else:text = logout_btn_text
             await bot.send_message(chat_id=call.from_user.id, text=txt.logout_text(text))
+            cache.redis.set(f'is_logout:{call.data.split(":")[2]}'  ,call.data.split(':')[2])
+    
+
+    elif status == 'logoutbot_no' :
+         await bot.delete_messages(call.from_user.id , call.message.id)
+        
 
 
 
@@ -613,7 +635,7 @@ async def inventory_increase_manager(bot , call):
             
             elif amount.text and amount.text in utils.commands :
                 await command_manager(bot , amount)
-                
+
             else : 
                 await alert(bot , call , msg=txt.err_inventory_increase)
                 await deleter(bot , call , call.message.id +1 )

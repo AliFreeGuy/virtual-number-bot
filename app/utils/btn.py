@@ -188,15 +188,23 @@ def get_twice_code(request_id , setting ):
 
 
 
+def logout_q(request_id) : 
+    buttons = []
+    buttons.append([
+
+        InlineKeyboardButton(text='لغو',callback_data=f'get_code:logoutbot_no:{request_id}'),
+        InlineKeyboardButton(text='تایید',callback_data=f'get_code:logoutbot_ok:{request_id}'),
+
+        ])
+    return InlineKeyboardMarkup(buttons)
+
+
 
 def get_admin_code(request_id ):
-
-
     buttons = []
     buttons.append([
         InlineKeyboardButton(text='دریافت کد',callback_data=f'get_code:getcode_admin:{request_id}'),
         InlineKeyboardButton(text='خروج ربات',callback_data=f'get_code:logoutbot_admin:{request_id}'),
-        
         ])
     return InlineKeyboardMarkup(buttons)
 
