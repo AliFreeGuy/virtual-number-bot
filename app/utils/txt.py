@@ -237,7 +237,7 @@ def success_transfer_text(amoutn ,user_wallet ):
 
 
 
-def backup_buy_number(chat_id , number , country  , price   , wallet   , old_amount , new_amount ):
+def backup_buy_number(chat_id , number , country  , price   , wallet   , old_amount , new_amount ,user_old_wallet , user_new_wallet  ):
 
     now_date_time  = jdatetime.datetime.now().strftime("%Y/%m/%d %H:%M")
 
@@ -248,7 +248,8 @@ def backup_buy_number(chat_id , number , country  , price   , wallet   , old_amo
 شماره : {number}
 کشور : {country}
 قیمت : {price}
-موجودی کاربر : {wallet}
+موجودی قبلی : {user_old_wallet}
+موجودی جدید : {user_new_wallet}
 
 موجودی قبلی کالینو : {str(old_amount)}
 موجودی جدید کالینو : {str(new_amount)}

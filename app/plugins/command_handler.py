@@ -410,12 +410,13 @@ async def get_code_manager(bot, call):
 
 
     if status == 'cancel':
-        setting = con.setting
-        numbers = setting.numbers
-        if numbers and setting.number_rows != 0:
-            await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text=setting.buy_number_text, reply_markup=btn.numbers_list_btn())
-            if setting.auth_phone and user.phone == 'none':
-                await bot.send_message(chat_id=call.from_user.id, text=setting.auth_phone_text, reply_markup=btn.get_user_contact())
+        await bot.edit_message_text(chat_id = call.from_user.id  , text = f'پنل بسته شد ✅',message_id = call.message.id ,reply_markup = btn.user_panel())
+        # setting = con.setting
+        # numbers = setting.numbers
+        # if numbers and setting.number_rows != 0:
+        #     await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id, text=setting.buy_number_text, reply_markup=btn.numbers_list_btn())
+        #     if setting.auth_phone and user.phone == 'none':
+        #         await bot.send_message(chat_id=call.from_user.id, text=setting.auth_phone_text, reply_markup=btn.get_user_contact())
 
     elif status == 'quality':
         await alert(bot, call, msg=phone_data['quality'])
@@ -444,15 +445,17 @@ async def get_code_manager(bot, call):
         else :
             code = utils.get_code(token=setting.callino_key, request_id=request_id)
             text_lines = call.message.text.splitlines()
-            if text_lines and text_lines[-1].startswith('CODE'):
-                text_lines = text_lines[:-1]
-            new_text = '\n'.join(text_lines).rstrip() + f'\n\nCODE : {code}'
+
+            # اضافه کردن کد جدید به انتهای متن
+            new_text = call.message.text.rstrip() + f'\nCODE : {code}'
+            
             await bot.edit_message_text(
                                         chat_id = call.message.sender_chat.id,
                                         message_id = call.message.id,
                                         text = new_text,
                                         reply_markup=btn.get_admin_code(phone_data['request_id'])
                                         )
+
 
 
 
@@ -468,6 +471,7 @@ async def get_code_manager(bot, call):
             else:
                 cache.redis.set(f'phone_buyed:{phone_data["number"]}', 'purchased')
                 callinot_old_amount = utils.callino_amount(setting.callino_key)
+                user_old_wallet = user.wallet
                 code = utils.get_code(token=setting.callino_key, request_id=request_id)
                 callino_new_amount = utils.callino_amount(setting.callino_key)
                 
@@ -480,7 +484,6 @@ async def get_code_manager(bot, call):
                                 request_id=phone_data['request_id'])
                     
 
-
                     try :
                         await bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.id,
                                                     text=txt.send_number_to_user_text(phone_data, setting.send_number_to_user_text),
@@ -490,11 +493,13 @@ async def get_code_manager(bot, call):
                     await bot.send_message(chat_id = call.from_user.id ,text=txt.send_code_to_user_text(phone_data, setting.send_number_to_user_text , code=code),)
 
                     if data:
+                        user_new_wallet = con.user(chat_id=call.from_user.id ,full_name=call.from_user.id )
+
                         await bot.send_message(setting.backup_channel, text=txt.backup_buy_number(user.chat_id,
                                                                                                 phone_data['number'],
                                                                                                 phone_data['countery'],
                                                                                                 phone_data['price'],
-                                                                                                user.wallet , callinot_old_amount , callino_new_amount),
+                                                                                                user.wallet , callinot_old_amount , callino_new_amount,user_old_wallet , user_new_wallet.wallet),
                                                                                                 reply_markup  =btn.get_admin_code(phone_data['request_id']))
 
 

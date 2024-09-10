@@ -29,6 +29,7 @@ class SettingModel(models.Model):
     user_limit_pay = models.BigIntegerField()
     ir_phone_only = models.BooleanField(default=False)
     auth_phone = models.BooleanField(default=False)
+    channel_update_log = models.BooleanField(default=True)
     interest_rates = models.PositiveBigIntegerField(default=0)
     number_rows = models.PositiveBigIntegerField(default=10)
     number_timeout = models.PositiveIntegerField(default=5)

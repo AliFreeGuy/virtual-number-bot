@@ -150,11 +150,12 @@ def numbers_log(messages):
     shamsi_time = now.strftime('%H:%M:%S')
     timestamp = f"{shamsi_date} {shamsi_time}"
     setting = SettingModel.objects.first()
-    if settings.DEBUG  : bot = Client('test' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string)
-    else :bot = Client('test' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string)
-    for message in messages :
-        with bot :
-            bot.send_message(int(setting.backup_channel) , text = f'{message}\n\n{timestamp}')
+    if setting.channel_update_log :
+        if settings.DEBUG  : bot = Client('test' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string)
+        else :bot = Client('test' , api_hash=setting.api_hash , api_id=setting.api_id , session_string=setting.session_string)
+        for message in messages :
+            with bot :
+                bot.send_message(int(setting.backup_channel) , text = f'{message}\n\n{timestamp}')
 
 
 
@@ -230,56 +231,56 @@ def send_message(status, chat_id, amount, previous_balance, date):
 
 
 
-@shared_task
-def send_wallet_update_notification(chat_id, old_wallet, new_wallet):
-    setting = SettingModel.objects.first()
-    user = User.objects.get(chat_id=chat_id)
+# @shared_task
+# def send_wallet_update_notification(chat_id, old_wallet, new_wallet):
+#     setting = SettingModel.objects.first()
+#     user = User.objects.get(chat_id=chat_id)
 
-    # تنظیمات کلاینت بر اساس وضعیت DEBUG
-    bot = Client(
-        'wallet_update_notification',
-        api_hash=setting.api_hash,
-        api_id=setting.api_id,
-        session_string=setting.session_string
-    )
+#     # تنظیمات کلاینت بر اساس وضعیت DEBUG
+#     bot = Client(
+#         'wallet_update_notification',
+#         api_hash=setting.api_hash,
+#         api_id=setting.api_id,
+#         session_string=setting.session_string
+#     )
 
-    # محاسبه تغییر موجودی
-    difference = new_wallet - old_wallet
+#     # محاسبه تغییر موجودی
+#     difference = new_wallet - old_wallet
     
-    # دریافت زمان و تاریخ کنونی میلادی
-    current_time = jdatetime.datetime.now().strftime('%H:%M:%S, [%Y/%m/%d %I:%M %p]')
+#     # دریافت زمان و تاریخ کنونی میلادی
+#     current_time = jdatetime.datetime.now().strftime('%H:%M:%S, [%Y/%m/%d %I:%M %p]')
     
-    # دریافت زمان و تاریخ کنونی شمسی
-    current_time_jalali = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+#     # دریافت زمان و تاریخ کنونی شمسی
+#     current_time_jalali = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
     
-    if difference > 0:
-        # اگر موجودی افزایش یافته باشد
-        update_message = f'''
-✅ با موفقیت حساب شما {difference} تومن شارژ شد
-💰 موجودی قبلی : {old_wallet}
-💎 موجودی جدید : {new_wallet}
-'''
-    else:
-        # اگر موجودی کاهش یافته باشد
-        update_message = f'''
-✅ با موفقیت حساب شما {abs(difference)} تومن کسر شد
-💰 موجودی قبلی : {old_wallet}
-💎 موجودی جدید : {new_wallet}
-'''
+#     if difference > 0:
+#         # اگر موجودی افزایش یافته باشد
+#         update_message = f'''
+# ✅ با موفقیت حساب شما {difference} تومن شارژ شد
+# 💰 موجودی قبلی : {old_wallet}
+# 💎 موجودی جدید : {new_wallet}
+# '''
+#     else:
+#         # اگر موجودی کاهش یافته باشد
+#         update_message = f'''
+# ✅ با موفقیت حساب شما {abs(difference)} تومن کسر شد
+# 💰 موجودی قبلی : {old_wallet}
+# 💎 موجودی جدید : {new_wallet}
+# '''
 
-    # پیام به کانال پشتیبان شامل اطلاعات تغییر موجودی با تاریخ شمسی
-    backup_text = f'''
-🛠️ تغییر موجودی
+#     # پیام به کانال پشتیبان شامل اطلاعات تغییر موجودی با تاریخ شمسی
+#     backup_text = f'''
+# 🛠️ تغییر موجودی
 
-کاربر: {user.chat_id}
-موجودی قبلی: {old_wallet} تومان
-موجودی جدید: {new_wallet} تومان
-{"🔺 افزایش" if difference > 0 else "🔻 کاهش"}: {abs(difference)} تومان
-📅 تاریخ: {current_time_jalali} 
-'''
+# کاربر: {user.chat_id}
+# موجودی قبلی: {old_wallet} تومان
+# موجودی جدید: {new_wallet} تومان
+# {"🔺 افزایش" if difference > 0 else "🔻 کاهش"}: {abs(difference)} تومان
+# 📅 تاریخ: {current_time_jalali} 
+# '''
 
-    with bot:
-        # ارسال پیام تغییر به کاربر
-        bot.send_message(chat_id=chat_id, text=update_message)
-        # ارسال اطلاعات تغییر موجودی به کانال پشتیبان
-        bot.send_message(chat_id=int(setting.backup_channel), text=backup_text)
+#     with bot:
+#         # ارسال پیام تغییر به کاربر
+#         bot.send_message(chat_id=chat_id, text=update_message)
+#         # ارسال اطلاعات تغییر موجودی به کانال پشتیبان
+#         bot.send_message(chat_id=int(setting.backup_channel), text=backup_text)
