@@ -17,16 +17,85 @@ broken_number = '❌ این شماره سالم نیست و بن شده است !
 
 
 user_is_logout = 'شما قبلا از این حساب خارج شده اید !'
-
+send_numbers = 'لطفا شماره هایی که میخواهید بررسی شود را با شبیه مثال زیر ارسال کنید : \n 0912345679 09987654321 ...'
 
 def logout_text(text):
-
     text = f'''ربات از اکانت خارج شد 
 ➖➖➖➖➖➖➖➖➖➖➖
 {text}'''
     return text
 
 logout_text_q = 'با خروج ربات از اکانت دیگر امکان دریافت کد نیست ایا اطمینان دارید ربات از اکانت خارج شود ؟'
+
+
+
+
+def generate_number_report(data,setting , total_price , is_backup_message=False,chat_id=None ):
+    valid_no_session = 0
+    valid_with_session = 0
+    invalid_numbers = 0
+    banned_numbers = 0
+
+    result = []
+
+    for item in data:
+        phone = item['phone']
+        status = item['status']
+
+        if status is True:
+            result.append(f"{phone}: ✅ شماره سالم بدون سشن")
+            valid_no_session += 1
+        elif status == 'session':
+            result.append(f"{phone}: 🔄 شماره سالم با سشن")
+            valid_with_session += 1
+        elif status == 'error':
+
+            result.append(f"{phone}: ❌ شماره اشتباه")
+            invalid_numbers += 1
+
+        else:
+            result.append(f"{phone}: 🚫 شماره بن")
+            banned_numbers += 1
+
+    user = f"tg://openmessage?user_id={chat_id}"
+
+    backup_message = setting.number_checked_sub_text if not is_backup_message else f'کاربر : [ {chat_id} ]({user})'
+
+
+
+
+
+
+    # ایجاد خلاصه اطلاعات کلی
+    total_numbers = len(data)
+    summary = (
+        f"\n\n📝 کل شماره‌ها: {total_numbers}\n"
+        f"✅ شماره‌های سالم بدون سشن: {valid_no_session}\n"
+        f"🔄 شماره‌های سالم با سشن: {valid_with_session}\n"
+        f"🚫 شماره‌های بن شده: {banned_numbers}\n"
+        f"❌ شماره‌های اشتباه: {invalid_numbers}\n"
+        f"💸 هزینه مصرف شده : {str(total_price)}\n"
+        f"\n{backup_message}\n"
+    )
+
+    # ترکیب نتایج و گزارش کلی
+    final_report = "\n".join(result) + summary
+    return final_report
+
+
+
+
+def generate_summary_text(unit_price, num_numbers, total_cost, user_wallet_before, user_wallet_after):
+    text = (
+        f"قیمت هر واحد چک شماره {unit_price} تومان است.\n"
+        f"تعداد شماره‌های دریافت شده {num_numbers} عدد.\n"
+        f"هزینه لازم برای چک شماره‌ها {total_cost} تومان.\n"
+        f"موجودی شما {user_wallet_before} تومان.\n"
+        f"موجودی پس از چک کردن شماره {user_wallet_after} تومان."
+        "\n\n ایا میخاهید ادامه دهید ؟"
+        
+    )
+    return text
 
 
 

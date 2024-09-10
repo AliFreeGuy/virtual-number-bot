@@ -200,6 +200,16 @@ def logout_q(request_id) :
 
 
 
+def number_checker(number_key):
+    buttons = []
+    buttons.append([
+        InlineKeyboardButton(text='لغو',callback_data=number_key+'_no'),
+        InlineKeyboardButton(text='تایید',callback_data=number_key+'_ok'),
+        ])
+    return InlineKeyboardMarkup(buttons)
+
+
+
 def get_admin_code(request_id ):
     buttons = []
     buttons.append([

@@ -2,6 +2,7 @@
 from pyrogram.errors import UserNotParticipant
 import requests 
 import json
+import asyncio
 
 
 
@@ -160,6 +161,57 @@ def callino_amount(token ):
     except Exception as e :
         return 0
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async def number_checker(numbers, api_key):
+    url = "http://ca.irbots.com"
+    phone_numbers = ','.join(numbers)
+    
+    params = {
+        "key": api_key,
+        "numbers": phone_numbers,
+        'target': 'checker'
+    }
+    
+    try:
+        response = await asyncio.to_thread(requests.get, url, params=params, timeout=15)
+    except Exception as e:
+        print(f'API error: {e}')
+        return []
+    
+    try:
+        response_json = response.json()
+        print(f"Response JSON: {response_json}")
+        
+        results = []
+        if response_json['status'] == 'ok':
+            for phone, status in response_json['data'].items():
+                results.append({'phone': phone, 'status': status})
+        return results
+    except requests.exceptions.JSONDecodeError:
+        print('Error: Invalid JSON response')
+        print(response.text)
+        return []
+    except requests.exceptions.RequestException as e:
+        print(f'Error: {e}')
+        return []
+    
+
 
 commands =[
         '/privacy',

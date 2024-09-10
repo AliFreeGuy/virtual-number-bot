@@ -5,10 +5,12 @@ from utils.connection import connection as con
 import requests
 from utils.utils import alert , deleter
 from utils.utils import join_checker
+import random
 from utils import utils
 import config
 import jdatetime
 from datetime import datetime , timedelta
+from pyromod.exceptions import ListenerTimeout
 
 @Client.on_message(f.updater &f.bot_is_on & f.user_is_active & f.user_is_join, group=2)
 async def command_manager(bot, msg):
@@ -63,12 +65,46 @@ async def command_manager(bot, msg):
 
 
 
+async def number_checker(bot, msg):
+    setting = con.setting
+    user = con.user(chat_id=msg.from_user.id, full_name=msg.from_user.first_name)
+    numbers_for_check = []
+    numbers = None
+    unit_price = setting.number_checker_price
+
+    try:
+        if unit_price == 0:
+                await bot.send_message(chat_id=msg.from_user.id, text="این بخش فعلاً غیر فعال است.")
+                return
+        else :
+            numbers = await bot.ask(chat_id=msg.from_user.id, text=setting.number_checker_text, reply_to_message_id=msg.id, timeout=10)
+    except ListenerTimeout:
+        await bot.delete_messages(msg.from_user.id, msg.id + 1)
+
+    if numbers and numbers.text and numbers.text not in utils.commands:
+        for number in numbers.text.split(' '):
+            if number.startswith('+') and number.replace('+', '').isdigit():
+                numbers_for_check.append(number)
+
+        if numbers_for_check:
+            count_numbers = len(numbers_for_check)
+
+            total_cost = unit_price * count_numbers
+            user_wallet_before = user.wallet
+            
+            if user_wallet_before >= total_cost:
+                user_wallet_after = user_wallet_before - total_cost
+                summary_text = txt.generate_summary_text(unit_price, count_numbers, total_cost, user_wallet_before, user_wallet_after)
+                numbers_key = f'numbers_checkers:{str(random.randint(0 , 55555))}'
+                cache.redis.set(numbers_key, ' '.join(numbers_for_check) )
+                await bot.send_message(chat_id=msg.from_user.id, text=summary_text , reply_markup = btn.number_checker(numbers_key),reply_to_message_id = numbers.id)
+            else:
+                await bot.send_message(chat_id=msg.from_user.id, text="موجودی شما کافی نیست.")
+    elif numbers and numbers.text and numbers.text in utils.commands:
+        await command_manager(bot, numbers)
 
 
-async def number_checker(bot , msg ):
-    user = con.user(chat_id=msg.from_user.id , full_name=msg.from_user.first_name)
-    print(user)
-    # numbers = await bot.ask(msg.from_user.id , .inventory_transfer_text , reply_to_message_id = msg.message.id ,timeout = 10)
+
 
         
 
@@ -196,6 +232,8 @@ async def callback_manager(bot, call):
 
     logger.warning(call.data)
     status = call.data.split(':')[0]
+    
+    print(status)
 
 
     if status == 'callino_amount' : 
@@ -258,10 +296,46 @@ async def callback_manager(bot, call):
             await get_code_manager(bot , call )
         else :await alert(bot , call , txt.user_is_logout)
         
-     
-
     elif status == 'orders':
         await orders_manager(bot, call )
+
+    elif status == 'numbers_checkers':
+        await numbers_checker(bot , call )
+
+
+
+
+async def numbers_checker(bot, call):
+    if call.data.endswith('_no'):
+        await bot.delete_messages(call.from_user.id, call.message.id)
+        call.text = '/start' 
+        await command_manager(bot, call)
+    
+    elif call.data.endswith('_ok'):
+        setting = con.setting
+        numbers = cache.redis.get(call.data.replace('_ok','')).split(' ')
+        number_checked = None 
+        batch_size = 10
+
+
+        for i in range(0, len(numbers), batch_size):
+            batch_numbers = numbers[i:i+batch_size]
+            checker = await utils.number_checker(batch_numbers, setting.checker_key)
+            number_checked = checker
+        
+        total_cost = setting.number_checker_price * len(number_checked)
+        order = con.add_order(chat_id=call.from_user.id , country_id=None , number='+989090' ,price=total_cost , request_id=random.randint(0 , 999999999))
+        print(order)
+
+
+
+        await bot.send_message(chat_id = call.from_user.id , text  = txt.generate_number_report(number_checked,setting,total_cost))
+        await bot.send_message(chat_id =setting.backup_channel  , text  = txt.generate_number_report(number_checked,setting,total_cost , is_backup_message=True , chat_id=call.from_user.id))
+
+            
+            
+            # ایجاد وقفه برای جلوگیری از بلاک شدن
+
 
 
 

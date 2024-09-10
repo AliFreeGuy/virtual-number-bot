@@ -90,24 +90,25 @@ class Connection:
         return response
 
     
-
     def add_order(self, chat_id, country_id, number, price, request_id):
         pattern = 'add_order'
         url = self.link_generator(pattern)
+        
         data = {
             'chat_id': chat_id,
-            'country_id': country_id,
             'number': number,
             'price': price,
             'request_id': request_id
         }
+
+        # افزودن country_id تنها اگر مقدار داشته باشد
+        if country_id:
+            data['country_id'] = country_id
+
         try:
             res = requests.post(url=url, json=data, headers=self.headers)
-            if res.status_code == 200:
-                return True
-            else:
-                return False
-        except requests.RequestException as e:
+            return res.status_code == 200
+        except requests.RequestException:
             return False
 
         

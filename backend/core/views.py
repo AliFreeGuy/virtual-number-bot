@@ -169,6 +169,8 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from . import models  # مطمئن شوید مدل‌ها را به درستی وارد کرده‌اید
 
+
+
 class UserOrderAPIView(APIView):
 
     def post(self, request):
@@ -184,11 +186,13 @@ class UserOrderAPIView(APIView):
         except models.User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 
-        # یافتن کشور بر اساس country_id
-        try:
-            country = models.NumbersModel.objects.get(id=country_id)
-        except models.NumbersModel.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Country not found'}, status=404)
+        country = None
+        if country_id:
+            # یافتن کشور بر اساس country_id در صورتی که مقدار داشته باشد
+            try:
+                country = models.NumbersModel.objects.get(id=country_id)
+            except models.NumbersModel.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Country not found'}, status=404)
 
         try:
             price = int(price)  # تبدیل قیمت به عدد صحیح
@@ -206,8 +210,15 @@ class UserOrderAPIView(APIView):
         user.save()
 
         # ایجاد سفارش
-        models.UserOrdersModel.objects.create(user=user, request_id=request_id, country=country, price=price, number=number)
+        models.UserOrdersModel.objects.create(
+            user=user, 
+            request_id=request_id, 
+            country=country,  # در صورت None بودن، به عنوان خالی ذخیره می‌شود
+            price=price, 
+            number=number
+        )
         return JsonResponse({'status': 'ok'})
+
 
 
 

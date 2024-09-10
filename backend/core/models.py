@@ -37,6 +37,10 @@ class SettingModel(models.Model):
         choices=STATUS_CHOICES,
         default='all',
     )
+    number_checker_price = models.PositiveBigIntegerField(default=1)
+    number_checker_count = models.PositiveBigIntegerField(default=10)
+    number_checker_text = models.TextField(default='متن چکر شماره')
+    number_checked_sub_text = models.TextField(default='متن زیر شماره های چک شده ')
 
     start_text = models.TextField(default='متن استارت')
     bot_off_text = models.TextField(default='متن ربات خاموش')
@@ -163,7 +167,7 @@ class SendMessageModel(models.Model):
 
 class UserOrdersModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    country = models.ForeignKey(NumbersModel, on_delete=models.CASCADE, related_name='orders')
+    country = models.ForeignKey(NumbersModel, on_delete=models.CASCADE, related_name='orders',null=True , blank=True)
     number = models.CharField(max_length=55)
     price = models.PositiveIntegerField()
     request_id = models.PositiveIntegerField(default=0  , unique=True)
